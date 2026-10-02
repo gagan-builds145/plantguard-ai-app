@@ -2,6 +2,7 @@ import { ScanResultCard } from "@/components/scanner/scan-result-card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { useI18n } from "@/lib/i18n";
 import {
   analyzePlantImage,
   type ScanResult,
@@ -42,6 +43,7 @@ export function PlantScanner({
   onSaved?: (scanId: string) => void;
 }) {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
@@ -180,7 +182,7 @@ export function PlantScanner({
               <Camera className="size-7" />
             </span>
             <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-foreground">
-              Check Your Plant
+              {t("nav.checkYourPlant")}
             </h2>
             <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
               Take a clear photo or upload an existing plant image. Our AI model
@@ -195,7 +197,7 @@ export function PlantScanner({
                 onClick={() => cameraInputRef.current?.click()}
               >
                 <Camera className="size-5" />
-                Take Photo
+                {t("scanner.takePhoto")}
               </Button>
               <Button
                 size="lg"
@@ -204,7 +206,7 @@ export function PlantScanner({
                 onClick={() => uploadInputRef.current?.click()}
               >
                 <Upload className="size-5" />
-                Upload Image
+                {t("scanner.upload")}
               </Button>
             </div>
 
@@ -235,7 +237,7 @@ export function PlantScanner({
           >
             <Link to="/history">
               <Clock3 className="size-4" />
-              View Scan History
+              {t("nav.scanHistory")}
             </Link>
           </Button>
         </div>
@@ -304,7 +306,7 @@ export function PlantScanner({
 
           <div className="p-5 sm:p-6">
             <h2 className="text-lg font-bold tracking-[-0.01em] text-foreground">
-              Analyzing your plant…
+              {t("scanner.analyzing")}
             </h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">
               Our AI model is examining the image for plant identity and visible
@@ -374,7 +376,7 @@ export function PlantScanner({
                   {saving ? (
                     <>
                       <Loader2 className="size-5 animate-spin" />
-                      Saving…
+                      {t("common.saving")}
                     </>
                   ) : saved ? (
                     <>
@@ -384,7 +386,7 @@ export function PlantScanner({
                   ) : (
                     <>
                       <Check className="size-5" />
-                      Save Result
+                      {t("scanner.saveResult")}
                     </>
                   )}
                 </Button>
@@ -406,7 +408,7 @@ export function PlantScanner({
                   >
                     <Link to="/history">
                       <Clock3 className="size-4" />
-                      View History
+                      {t("nav.history")}
                     </Link>
                   </Button>
                 </div>

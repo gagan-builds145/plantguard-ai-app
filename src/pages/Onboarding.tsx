@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
+import { useI18n } from "@/lib/i18n";
 import {
   CROP_GROUPS,
   FARMER_HELP_OPTIONS,
@@ -114,6 +115,7 @@ function OptionCard({
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, setLanguage: setUiLanguage } = useI18n();
   const saveProfile = useMutation(api.farmers.saveProfile);
 
   const [step, setStep] = useState(0);
@@ -124,7 +126,7 @@ export default function Onboarding() {
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [locationChosen, setLocationChosen] = useState(false);
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState("");
   const [languageQuery, setLanguageQuery] = useState("");
   const [crops, setCrops] = useState<string[]>([]);
   const [farmSize, setFarmSize] = useState("");
@@ -214,7 +216,7 @@ export default function Onboarding() {
   async function finish() {
     setSaving(true);
     try {
-      await saveProfile({ helpNeeded });
+      await saveProfile({ helpNeeded, onboardedAt: Date.now() });
       toast.success("Profile saved");
       navigate("/dashboard", { replace: true });
     } catch {
@@ -225,6 +227,15 @@ export default function Onboarding() {
 
   const total = STEPS.length;
   const isDone = step === total;
+
+  // Every step needs a choice before the user can move on.
+  const canContinue = [
+    displayName.trim().length >= 2,
+    locationChosen && Boolean(country && state && city),
+    language !== "",
+    crops.length > 0 && farmSize !== "" && farmingType !== "",
+    helpNeeded.length > 0,
+  ][step] ?? false;
 
   return (
     <div className="min-h-screen bg-surface-2">
@@ -423,7 +434,10 @@ export default function Onboarding() {
                     key={item.code}
                     type="button"
                     aria-pressed={selected}
-                    onClick={() => setLanguage(item.code)}
+                    onClick={() => {
+                      setLanguage(item.code);
+                      setUiLanguage(item.code);
+                    }}
                     className={cn(
                       "flex items-center justify-between rounded-2xl border px-4 py-3.5 text-left transition-colors",
                       selected
@@ -594,22 +608,22 @@ export default function Onboarding() {
               disabled={step === 0 || saving}
             >
               <ArrowLeft className="size-4" />
-              Back
+              {t("common.back")}
             </Button>
             <Button
               className="h-12 rounded-xl px-7 text-[15px] font-semibold"
               onClick={step === total - 1 ? finish : next}
-              disabled={saving}
+              disabled={saving || !canContinue}
             >
               {saving ? (
                 <>
                   <Loader2 className="size-5 animate-spin" />
-                  Saving…
+                  {t("common.saving")}
                 </>
               ) : step === total - 1 ? (
                 "Save and continue"
               ) : (
-                "Continue"
+                t("common.continue")
               )}
             </Button>
           </div>

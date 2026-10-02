@@ -36,7 +36,9 @@ const schema = defineSchema(
     farmerProfiles: defineTable({
       userId: v.id("users"),
       displayName: v.optional(v.string()),
+      phone: v.optional(v.string()),
       language: v.optional(v.string()),
+      onboardedAt: v.optional(v.number()),
       location: v.optional(
         v.object({
           country: v.string(),

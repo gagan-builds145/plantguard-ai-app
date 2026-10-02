@@ -10,6 +10,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/convex/_generated/api";
 import { useFarmerProfile } from "@/hooks/use-farmer";
+import { useI18n, type MessageKey } from "@/lib/i18n";
 import {
   FARM_SERVICES,
   FARMER_OFFERS,
@@ -36,11 +37,11 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router";
 
-function greeting() {
+function greetingKey(): MessageKey {
   const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
+  if (hour < 12) return "dash.goodMorning";
+  if (hour < 17) return "dash.goodAfternoon";
+  return "dash.goodEvening";
 }
 
 /** Deterministic sample forecast so the demo is stable and clearly labelled. */
@@ -83,6 +84,7 @@ function StatusBadge({ status }: { status: HealthStatus }) {
 }
 
 function OffersCarousel() {
+  const { t } = useI18n();
   const [api, setApi] = useState<CarouselApi>();
   const [paused, setPaused] = useState(false);
   const [selected, setSelected] = useState(0);
@@ -113,7 +115,7 @@ function OffersCarousel() {
             id="offers-heading"
             className="text-lg font-semibold tracking-[-0.01em] text-foreground"
           >
-            Offers &amp; benefits
+            {t("dash.offers")}
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Schemes and inputs relevant to your crops
@@ -198,6 +200,7 @@ function OffersCarousel() {
 
 export default function Dashboard() {
   const { profile, isLoading } = useFarmerProfile();
+  const { t } = useI18n();
   const recentScans = useQuery(api.scans.listRecentScans, { limit: 4 });
 
   const weather = useMemo(
@@ -230,7 +233,11 @@ export default function Dashboard() {
     );
   }
 
-  if (!profile) {
+  // A profile carrying only a phone number (saved at sign-up) still needs
+  // onboarding; one that already has a name does not.
+  const needsOnboarding =
+    !profile || (!profile.onboardedAt && !profile.displayName);
+  if (needsOnboarding) {
     return <Navigate to="/onboarding" replace />;
   }
 
@@ -244,14 +251,14 @@ export default function Dashboard() {
         {/* Greeting */}
         <header className="flex flex-col gap-1">
           <p className="text-sm font-medium text-muted-foreground">
-            {greeting()}
+            {t(greetingKey())}
           </p>
           <h1 className="text-[28px] font-bold tracking-[-0.02em] text-foreground sm:text-[32px]">
-            {profile.displayName?.split(" ")[0] || "Farmer"}
+            {profile.displayName?.split(" ")[0] || t("shell.farmer")}
           </h1>
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <MapPin className="size-3.5" />
-            {where ?? "Add your location to personalize this information."}
+            {where ?? t("dash.locationHint")}
           </p>
         </header>
 
@@ -270,15 +277,15 @@ export default function Dashboard() {
                 <Camera className="size-6" />
               </span>
               <h2 className="mt-4 text-[26px] font-bold uppercase tracking-[-0.01em] text-white sm:text-[30px]">
-                Check your plant
+                {t("dash.checkPlant")}
               </h2>
               <p className="mt-2 text-[15px] leading-6 text-white/70">
-                Scan or upload plant image
+                {t("dash.scanOrUpload")}
               </p>
             </div>
             <span className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-white px-7 text-[15px] font-semibold text-[#1B5E20] shadow-[0_8px_20px_rgba(0,0,0,0.2)] transition-colors group-hover:bg-[#E8F5E9] sm:w-auto">
               <ScanLine className="size-5" />
-              Check Plant
+              {t("dash.checkPlantBtn")}
             </span>
           </div>
         </Link>
@@ -294,7 +301,7 @@ export default function Dashboard() {
                 id="services-heading"
                 className="text-lg font-semibold tracking-[-0.01em] text-foreground"
               >
-                Farm services
+                {t("dash.farmServices")}
               </h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 Everything you need around the farm
@@ -304,7 +311,7 @@ export default function Dashboard() {
               to="/services"
               className="text-sm font-semibold text-primary hover:underline"
             >
-              View all
+              {t("common.viewAll")}
             </Link>
           </div>
 
@@ -341,7 +348,7 @@ export default function Dashboard() {
               id="weather-heading"
               className="text-lg font-semibold tracking-[-0.01em] text-foreground"
             >
-              Weather
+              {t("dash.weather")}
             </h2>
           </div>
 
@@ -363,7 +370,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Droplets className="size-4" />
-                  Humidity {weather.humidity}%
+                  {t("dash.humidity")} {weather.humidity}%
                 </div>
               </div>
               <div className="grid grid-cols-3 divide-x divide-border border-t border-border">
@@ -379,16 +386,16 @@ export default function Dashboard() {
                 ))}
               </div>
               <p className="border-t border-border bg-surface-2 px-5 py-2.5 text-xs text-muted-foreground">
-                Sample forecast data for the prototype.
+                {t("dash.sampleForecast")}
               </p>
             </div>
           ) : (
             <div className="flex flex-col items-start gap-3 rounded-2xl border border-dashed border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted-foreground">
-                Add your location to personalize this information.
+                {t("dash.locationHint")}
               </p>
               <Button asChild variant="outline" className="h-10 rounded-xl">
-                <Link to="/profile">Add location</Link>
+                <Link to="/profile">{t("dash.addLocation")}</Link>
               </Button>
             </div>
           )}
@@ -402,7 +409,7 @@ export default function Dashboard() {
                 id="crops-heading"
                 className="text-lg font-semibold tracking-[-0.01em] text-foreground"
               >
-                My crops
+                {t("dash.myCrops")}
               </h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 Health is based on your latest plant checks
@@ -412,7 +419,7 @@ export default function Dashboard() {
               to="/crops"
               className="text-sm font-semibold text-primary hover:underline"
             >
-              Manage
+              {t("common.manage")}
             </Link>
           </div>
 
@@ -423,14 +430,14 @@ export default function Dashboard() {
               </span>
               <div>
                 <p className="text-sm font-semibold text-foreground">
-                  No crops added yet
+                  {t("dash.noCrops")}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Add the crops you grow to personalise your dashboard.
+                  {t("dash.noCropsSub")}
                 </p>
               </div>
               <Button asChild size="sm" className="h-10 rounded-xl px-4">
-                <Link to="/crops">Add crop</Link>
+                <Link to="/crops">{t("dash.addCrop")}</Link>
               </Button>
             </div>
           ) : (
@@ -454,7 +461,7 @@ export default function Dashboard() {
                     ) : (
                       <Badge className="h-7 gap-1.5 border-transparent bg-surface-3 px-2.5 text-xs text-muted-foreground">
                         <span className="size-1.5 rounded-full bg-muted-foreground/50" />
-                        Not scanned yet
+                        {t("dash.notScanned")}
                       </Badge>
                     )}
                   </div>
@@ -472,14 +479,14 @@ export default function Dashboard() {
                 id="recent-heading"
                 className="text-lg font-semibold tracking-[-0.01em] text-foreground"
               >
-                Recent plant checks
+                {t("dash.recentChecks")}
               </h2>
             </div>
             <Link
               to="/history"
               className="text-sm font-semibold text-primary hover:underline"
             >
-              View all
+              {t("common.viewAll")}
             </Link>
           </div>
 
@@ -495,16 +502,16 @@ export default function Dashboard() {
               </span>
               <div>
                 <p className="text-sm font-semibold text-foreground">
-                  No plant checks yet
+                  {t("dash.noChecks")}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Your saved AI results will appear here.
+                  {t("dash.noChecksSub")}
                 </p>
               </div>
               <Button asChild size="sm" className="h-10 rounded-xl px-4">
                 <Link to="/scan">
                   <Camera className="size-4" />
-                  Check your plant
+                  {t("dash.checkPlant")}
                 </Link>
               </Button>
             </div>
@@ -552,8 +559,7 @@ export default function Dashboard() {
 
         <p className="flex items-center gap-2 pb-2 text-xs text-muted-foreground">
           <Sparkles className="size-3.5" />
-          AI-assisted results — confirm critical decisions with a local
-          agricultural expert.
+          {t("dash.aiNote")}
         </p>
       </div>
     </AppShell>

@@ -7,18 +7,23 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
+import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
+import { useI18n } from "@/lib/i18n";
+import { useMutation } from "convex/react";
 import {
   ArrowRight,
   Camera,
   CheckCircle2,
   Loader2,
   Mail,
+  Phone,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
+import { toast } from "sonner";
 
 interface AuthProps {
   redirectAfterAuth?: string;
@@ -35,6 +40,11 @@ function resolveRedirectAfterAuth(
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^\+?[0-9]{7,15}$/;
+
+function normalizePhone(value: string) {
+  return value.replace(/[\s\-()]/g, "");
+}
 
 const HIGHLIGHTS = [
   { icon: Camera, text: "Scan a leaf and get a confidence-scored reading" },
@@ -46,7 +56,9 @@ type AuthMode = "signin" | "signup";
 
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
+  const saveProfile = useMutation(api.farmers.saveProfile);
   const [searchParams] = useSearchParams();
   const mode: AuthMode =
     searchParams.get("mode") === "signup" ? "signup" : "signin";
@@ -62,6 +74,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
 
   const [step, setStep] = useState<"identify" | "verify">("identify");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +115,14 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       return;
     }
 
+    if (isSignUp) {
+      const normalizedPhone = normalizePhone(phone);
+      if (!PHONE_RE.test(normalizedPhone)) {
+        setError("Please enter a valid mobile number.");
+        return;
+      }
+    }
+
     setIsLoading(true);
     try {
       await sendCode(value);
@@ -127,6 +148,18 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       formData.set("email", email);
       formData.set("code", otp);
       await signIn("email-otp", formData);
+
+      if (isSignUp && phone.trim()) {
+        // Store the mobile number on the farmer profile for account recovery.
+        try {
+          await saveProfile({ phone: normalizePhone(phone) });
+        } catch {
+          toast.error(
+            "Signed in, but we couldn't save your mobile number. You can add it later from your profile.",
+          );
+        }
+      }
+
       navigate(redirect, { replace: true });
     } catch {
       setError("Incorrect verification code. Please try again.");
@@ -221,7 +254,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
           {step === "identify" ? (
             <>
               <h1 className="text-[26px] font-bold tracking-[-0.02em] text-foreground">
-                {isSignUp ? "Create your account" : "Welcome back"}
+                {isSignUp ? t("auth.createAccount") : t("auth.welcomeBack")}
               </h1>
               <p className="mt-2 text-[15px] leading-6 text-muted-foreground">
                 {isSignUp
@@ -232,7 +265,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               <form onSubmit={handleIdentify} className="mt-8 flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="email" className="text-sm font-medium">
-                    Email address
+                    {t("auth.email")}
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -255,6 +288,32 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                   </p>
                 </div>
 
+                {isSignUp ? (
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="phone" className="text-sm font-medium">
+                      {t("auth.mobile")}
+                    </Label>
+                    <div className="relative">
+                      <Phone className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        placeholder="+91 98765 43210"
+                        value={phone}
+                        onChange={(event) => setPhone(event.target.value)}
+                        disabled={isLoading}
+                        className="h-12 rounded-xl pl-10 text-[15px]"
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Used for account recovery. We&apos;ll never share it.
+                    </p>
+                  </div>
+                ) : null}
+
                 {error ? (
                   <p className="text-sm font-medium text-danger" role="alert">
                     {error}
@@ -273,7 +332,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     </>
                   ) : (
                     <>
-                      {isSignUp ? "Create account" : "Continue"}
+                      {isSignUp ? t("auth.createAccount") : t("common.continue")}
                       <ArrowRight className="size-4" />
                     </>
                   )}
@@ -295,7 +354,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                 onClick={handleGuest}
                 disabled={isLoading}
               >
-                Continue as guest
+                {t("auth.continueGuest")}
               </Button>
               <p className="mt-3 text-center text-xs text-muted-foreground">
                 Explore with a temporary account. You can add your details later.

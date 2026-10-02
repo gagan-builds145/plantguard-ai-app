@@ -26,7 +26,9 @@ export const getProfile = query({
 export const saveProfile = mutation({
   args: {
     displayName: v.optional(v.string()),
+    phone: v.optional(v.string()),
     language: v.optional(v.string()),
+    onboardedAt: v.optional(v.number()),
     location: v.optional(
       v.object({
         country: v.string(),
@@ -53,7 +55,9 @@ export const saveProfile = mutation({
       return await ctx.db.insert("farmerProfiles", {
         userId,
         displayName: args.displayName,
+        phone: args.phone,
         language: args.language,
+        onboardedAt: args.onboardedAt,
         location: args.location,
         crops: args.crops ?? [],
         farmSize: args.farmSize,
@@ -67,7 +71,11 @@ export const saveProfile = mutation({
       ...(args.displayName !== undefined
         ? { displayName: args.displayName }
         : {}),
+      ...(args.phone !== undefined ? { phone: args.phone } : {}),
       ...(args.language !== undefined ? { language: args.language } : {}),
+      ...(args.onboardedAt !== undefined
+        ? { onboardedAt: args.onboardedAt }
+        : {}),
       ...(args.crops !== undefined ? { crops: args.crops } : {}),
       ...(args.farmSize !== undefined ? { farmSize: args.farmSize } : {}),
       ...(args.farmingType !== undefined

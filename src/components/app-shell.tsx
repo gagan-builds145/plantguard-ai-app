@@ -1,6 +1,7 @@
 import { PlantGuardLogo, PlantGuardMark } from "@/components/brand";
 import { useAuth } from "@/hooks/use-auth";
 import { useFarmerProfile } from "@/hooks/use-farmer";
+import { useI18n, type MessageKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import {
   History,
@@ -15,7 +16,7 @@ import { Link, useLocation } from "react-router";
 
 type NavItem = {
   key: string;
-  label: string;
+  labelKey: MessageKey;
   to: string;
   icon: typeof Home;
   emphasized?: boolean;
@@ -23,21 +24,21 @@ type NavItem = {
 
 /** Mobile bottom navigation: Home · Services · Check Plant · History · Profile */
 const MOBILE_NAV: NavItem[] = [
-  { key: "home", label: "Home", to: "/dashboard", icon: Home },
-  { key: "services", label: "Services", to: "/services", icon: Sprout },
-  { key: "scan", label: "Check Plant", to: "/scan", icon: ScanLine, emphasized: true },
-  { key: "history", label: "History", to: "/history", icon: History },
-  { key: "profile", label: "Profile", to: "/profile", icon: UserRound },
+  { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
+  { key: "services", labelKey: "nav.services", to: "/services", icon: Sprout },
+  { key: "scan", labelKey: "nav.scan", to: "/scan", icon: ScanLine, emphasized: true },
+  { key: "history", labelKey: "nav.history", to: "/history", icon: History },
+  { key: "profile", labelKey: "nav.profile", to: "/profile", icon: UserRound },
 ];
 
 /** Desktop sidebar navigation */
 const DESKTOP_NAV: NavItem[] = [
-  { key: "home", label: "Home", to: "/dashboard", icon: Home },
-  { key: "scan", label: "Check Your Plant", to: "/scan", icon: ScanLine },
-  { key: "services", label: "Farm Services", to: "/services", icon: Sprout },
-  { key: "crops", label: "My Crops", to: "/crops", icon: Wheat },
-  { key: "history", label: "Scan History", to: "/history", icon: History },
-  { key: "profile", label: "Profile", to: "/profile", icon: UserRound },
+  { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
+  { key: "scan", labelKey: "nav.checkYourPlant", to: "/scan", icon: ScanLine },
+  { key: "services", labelKey: "nav.farmServices", to: "/services", icon: Sprout },
+  { key: "crops", labelKey: "nav.crops", to: "/crops", icon: Wheat },
+  { key: "history", labelKey: "nav.scanHistory", to: "/history", icon: History },
+  { key: "profile", labelKey: "nav.profile", to: "/profile", icon: UserRound },
 ];
 
 function isActive(pathname: string, to: string) {
@@ -61,11 +62,12 @@ export function AppShell({
   const { pathname } = useLocation();
   const { profile } = useFarmerProfile();
   const { user } = useAuth();
+  const { t } = useI18n();
 
   const name =
     profile?.displayName?.split(" ")[0] ||
     user?.name?.split(" ")[0] ||
-    "Farmer";
+    t("shell.farmer");
   const initials = (profile?.displayName || user?.name || "F")
     .trim()
     .slice(0, 1)
@@ -84,7 +86,7 @@ export function AppShell({
         <div className="mx-4 flex items-center gap-2 rounded-xl bg-accent px-3 py-2.5">
           <Sprout className="size-4 text-primary" />
           <span className="text-xs font-semibold text-accent-foreground">
-            Farmer workspace
+            {t("shell.farmerWorkspace")}
           </span>
         </div>
 
@@ -108,7 +110,7 @@ export function AppShell({
                   className={cn("size-5", isCurrent && "text-primary")}
                   strokeWidth={isCurrent ? 2.4 : 2}
                 />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}
@@ -124,12 +126,12 @@ export function AppShell({
             </span>
             <span className="flex min-w-0 flex-col">
               <span className="truncate text-sm font-semibold text-foreground">
-                {profile?.displayName || user?.name || "Farmer"}
+                {profile?.displayName || user?.name || t("shell.farmer")}
               </span>
               <span className="truncate text-xs text-muted-foreground">
                 {profile?.location
                   ? `${profile.location.city}, ${profile.location.state}`
-                  : "Location not set"}
+                  : t("shell.locationNotSet")}
               </span>
             </span>
           </Link>
@@ -209,7 +211,7 @@ export function AppShell({
                       <Icon className="size-6" strokeWidth={2.2} />
                     </span>
                     <span className="text-[11px] font-semibold text-primary">
-                      {item.label}
+                      {t(item.labelKey)}
                     </span>
                   </Link>
                 </li>
@@ -229,7 +231,7 @@ export function AppShell({
                     className="size-6"
                     strokeWidth={isCurrent ? 2.4 : 2}
                   />
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               </li>
             );

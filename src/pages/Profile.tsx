@@ -33,6 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
 import { useFarmerProfile } from "@/hooks/use-farmer";
+import { useI18n } from "@/lib/i18n";
 import { LANGUAGES, LOCATIONS } from "@/lib/plantguard-data";
 import { useMutation } from "convex/react";
 import {
@@ -44,6 +45,7 @@ import {
   LogOut,
   MapPin,
   Pencil,
+  Phone,
   ShieldCheck,
   Sprout,
   Wheat,
@@ -112,6 +114,7 @@ function Row({
 export default function Profile() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { t, setLanguage: setUiLanguage } = useI18n();
   const { profile, isLoading } = useFarmerProfile();
   const saveProfile = useMutation(api.farmers.saveProfile);
 
@@ -176,6 +179,7 @@ export default function Profile() {
   }
 
   async function setLanguage(code: string) {
+    setUiLanguage(code);
     try {
       await saveProfile({ language: code });
       toast.success("Language preference saved");
@@ -191,7 +195,7 @@ export default function Profile() {
 
   if (isLoading) {
     return (
-      <AppShell active="profile" title="Profile">
+      <AppShell active="profile" title={t("profile.title")}>
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
           <Skeleton className="h-28 rounded-3xl" />
           <Skeleton className="h-64 rounded-2xl" />
@@ -240,11 +244,11 @@ export default function Profile() {
         {/* Account */}
         <section className="flex flex-col gap-3">
           <h2 className="px-1 text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-            Account
+            {t("profile.account")}
           </h2>
           <Row
             icon={Pencil}
-            title="Display name"
+            title={t("profile.displayName")}
             description={displayName}
             onClick={() => {
               setNameDraft(displayName);
@@ -252,8 +256,16 @@ export default function Profile() {
             }}
           />
           <Row
+            icon={Phone}
+            title={t("auth.mobile")}
+            description={
+              profile?.phone ?? "Add a mobile number for account recovery"
+            }
+            disabled
+          />
+          <Row
             icon={Leaf}
-            title="My crops"
+            title={t("profile.myCrops")}
             description={
               profile?.crops.length
                 ? `${profile.crops.length} crop${profile.crops.length > 1 ? "s" : ""} selected`
@@ -263,7 +275,7 @@ export default function Profile() {
           />
           <Row
             icon={MapPin}
-            title="Location"
+            title={t("profile.location")}
             description={
               profile?.location
                 ? `${profile.location.city}, ${profile.location.state}, ${profile.location.country}`
@@ -277,7 +289,7 @@ export default function Profile() {
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-semibold text-foreground">
-                Language
+                {t("profile.language")}
               </span>
               <span className="mt-0.5 block truncate text-sm text-muted-foreground">
                 {languageLabel}
@@ -351,7 +363,7 @@ export default function Profile() {
                 className="h-12 w-full rounded-xl justify-start gap-3 px-4 text-[15px] font-semibold text-danger hover:text-danger"
               >
                 <LogOut className="size-5" />
-                Log out
+                {t("profile.logout")}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="rounded-2xl">
