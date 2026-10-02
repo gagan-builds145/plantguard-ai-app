@@ -168,10 +168,10 @@ export default function Landing() {
           </nav>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" className="h-10 rounded-xl px-4">
-              <Link to="/auth">Sign in</Link>
+              <Link to="/auth?mode=signin">Sign in</Link>
             </Button>
             <Button asChild className="h-10 rounded-xl px-4 font-semibold">
-              <Link to="/auth">Get started</Link>
+              <Link to="/auth?mode=signup">Get started</Link>
             </Button>
           </div>
         </div>
@@ -209,7 +209,7 @@ export default function Landing() {
                 size="lg"
                 className="h-14 rounded-2xl px-6 text-base font-semibold shadow-[0_8px_24px_rgba(46,125,50,0.24)]"
               >
-                <Link to="/auth">
+                <Link to="/auth?mode=signup">
                   <Camera className="size-5" />
                   Check your plant
                 </Link>
@@ -445,7 +445,7 @@ export default function Landing() {
                 size="lg"
                 className="h-14 rounded-2xl px-7 text-base font-semibold"
               >
-                <Link to="/auth">
+                <Link to="/auth?mode=signup">
                   Create your account
                   <ArrowRight className="size-4" />
                 </Link>
@@ -456,7 +456,7 @@ export default function Landing() {
                 variant="outline"
                 className="h-14 rounded-2xl px-7 text-base font-semibold"
               >
-                <Link to="/auth">Sign in</Link>
+                <Link to="/auth?mode=signin">Sign in</Link>
               </Button>
             </div>
           </motion.div>

@@ -42,14 +42,23 @@ const HIGHLIGHTS = [
   { icon: ShieldCheck, text: "Every result saved to your scan history" },
 ];
 
+type AuthMode = "signin" | "signup";
+
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirect = resolveRedirectAfterAuth(
-    searchParams.get("returnTo"),
-    redirectAfterAuth,
-  );
+  const mode: AuthMode =
+    searchParams.get("mode") === "signup" ? "signup" : "signin";
+  const returnTo = searchParams.get("returnTo");
+  const redirect = resolveRedirectAfterAuth(returnTo, redirectAfterAuth);
+
+  const authHref = (target: AuthMode) =>
+    `/auth?mode=${target}${
+      returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""
+    }`;
+
+  const isSignUp = mode === "signup";
 
   const [step, setStep] = useState<"identify" | "verify">("identify");
   const [email, setEmail] = useState("");
@@ -212,11 +221,12 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
           {step === "identify" ? (
             <>
               <h1 className="text-[26px] font-bold tracking-[-0.02em] text-foreground">
-                Welcome back
+                {isSignUp ? "Create your account" : "Welcome back"}
               </h1>
               <p className="mt-2 text-[15px] leading-6 text-muted-foreground">
-                Sign in to continue with PlantGuard AI. New here? The same form
-                creates your account.
+                {isSignUp
+                  ? "Enter your email to set up your PlantGuard AI account. It takes less than a minute — no password to remember."
+                  : "Sign in to continue with PlantGuard AI. We'll email you a one-time code."}
               </p>
 
               <form onSubmit={handleIdentify} className="mt-8 flex flex-col gap-5">
@@ -263,7 +273,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     </>
                   ) : (
                     <>
-                      Continue
+                      {isSignUp ? "Create account" : "Continue"}
                       <ArrowRight className="size-4" />
                     </>
                   )}
@@ -290,11 +300,35 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               <p className="mt-3 text-center text-xs text-muted-foreground">
                 Explore with a temporary account. You can add your details later.
               </p>
+
+              <p className="mt-6 text-center text-sm text-muted-foreground">
+                {isSignUp ? (
+                  <>
+                    Already have an account?{" "}
+                    <Link
+                      to={authHref("signin")}
+                      className="font-semibold text-primary hover:underline"
+                    >
+                      Sign in
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    New to PlantGuard AI?{" "}
+                    <Link
+                      to={authHref("signup")}
+                      className="font-semibold text-primary hover:underline"
+                    >
+                      Create an account
+                    </Link>
+                  </>
+                )}
+              </p>
             </>
           ) : (
             <>
               <h1 className="text-[26px] font-bold tracking-[-0.02em] text-foreground">
-                Verify your account
+                {isSignUp ? "Verify your email" : "Confirm your sign-in"}
               </h1>
               <p className="mt-2 text-[15px] leading-6 text-muted-foreground">
                 Enter the 6-digit verification code we sent to{" "}
