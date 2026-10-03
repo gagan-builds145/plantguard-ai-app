@@ -29,6 +29,7 @@ export const saveProfile = mutation({
     phone: v.optional(v.string()),
     language: v.optional(v.string()),
     onboardedAt: v.optional(v.number()),
+    role: v.optional(v.union(v.literal("farmer"), v.literal("nursery"))),
     location: v.optional(
       v.object({
         country: v.string(),
@@ -39,6 +40,9 @@ export const saveProfile = mutation({
     crops: v.optional(v.array(v.string())),
     farmSize: v.optional(v.string()),
     farmingType: v.optional(v.string()),
+    nurseryType: v.optional(v.string()),
+    nurseryCategories: v.optional(v.array(v.string())),
+    nurseryScale: v.optional(v.string()),
     helpNeeded: v.optional(v.array(v.string())),
     clearLocation: v.optional(v.boolean()),
   },
@@ -58,10 +62,14 @@ export const saveProfile = mutation({
         phone: args.phone,
         language: args.language,
         onboardedAt: args.onboardedAt,
+        role: args.role,
         location: args.location,
         crops: args.crops ?? [],
         farmSize: args.farmSize,
         farmingType: args.farmingType,
+        nurseryType: args.nurseryType,
+        nurseryCategories: args.nurseryCategories,
+        nurseryScale: args.nurseryScale,
         helpNeeded: args.helpNeeded ?? [],
         createdAt: Date.now(),
       });
@@ -76,10 +84,20 @@ export const saveProfile = mutation({
       ...(args.onboardedAt !== undefined
         ? { onboardedAt: args.onboardedAt }
         : {}),
+      ...(args.role !== undefined ? { role: args.role } : {}),
       ...(args.crops !== undefined ? { crops: args.crops } : {}),
       ...(args.farmSize !== undefined ? { farmSize: args.farmSize } : {}),
       ...(args.farmingType !== undefined
         ? { farmingType: args.farmingType }
+        : {}),
+      ...(args.nurseryType !== undefined
+        ? { nurseryType: args.nurseryType }
+        : {}),
+      ...(args.nurseryCategories !== undefined
+        ? { nurseryCategories: args.nurseryCategories }
+        : {}),
+      ...(args.nurseryScale !== undefined
+        ? { nurseryScale: args.nurseryScale }
         : {}),
       ...(args.helpNeeded !== undefined
         ? { helpNeeded: args.helpNeeded }

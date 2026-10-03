@@ -1,18 +1,26 @@
 import {
   Banknote,
+  BadgeCheck,
   BadgeIndianRupee,
+  Boxes,
   Bug,
+  ClipboardList,
   CloudSun,
   Coins,
   Droplets,
   FlaskConical,
+  Flower2,
   Leaf,
   type LucideIcon,
+  Megaphone,
+  Microscope,
   Package,
   ShieldCheck,
+  ShoppingCart,
   Sprout,
   Tractor,
   TrendingUp,
+  Truck,
   Users,
   Wheat,
 } from "lucide-react";
@@ -300,6 +308,229 @@ export const FARMER_OFFERS: Offer[] = [
       "Understand recent price direction for your crops before you plan the sale.",
     cta: "See trends",
     icon: TrendingUp,
+  },
+];
+
+/* ------------------------------------------------------------------ *
+ * Nursery workspace options
+ * ------------------------------------------------------------------ */
+
+export type WorkspaceRole = "farmer" | "nursery";
+
+export const NURSERY_TYPES = [
+  "Retail / Garden centre",
+  "Wholesale nursery",
+  "Propagation nursery",
+  "Landscaping nursery",
+  "Plant rental",
+  "Other",
+];
+
+export const NURSERY_CATEGORY_GROUPS: { group: string; items: string[] }[] = [
+  {
+    group: "Ornamental & Flowering",
+    items: [
+      "Indoor plants",
+      "Flowering plants",
+      "Ornamental foliage",
+      "Cacti & succulents",
+      "Bonsai & topiary",
+    ],
+  },
+  {
+    group: "Fruit & Timber",
+    items: [
+      "Fruit saplings",
+      "Timber saplings",
+      "Grafted plants",
+      "Rootstock",
+    ],
+  },
+  {
+    group: "Field & Plantation",
+    items: [
+      "Vegetable seedlings",
+      "Paddy seedlings",
+      "Spice plants",
+      "Medicinal plants",
+    ],
+  },
+  {
+    group: "Propagation inputs",
+    items: [
+      "Seeds",
+      "Bulbs & tubers",
+      "Tissue-culture plants",
+      "Other",
+    ],
+  },
+];
+
+export const ALL_NURSERY_CATEGORIES = NURSERY_CATEGORY_GROUPS.flatMap(
+  (group) => group.items,
+);
+
+export const NURSERY_SCALES = [
+  "Under 1,000 plants",
+  "1,000–5,000 plants",
+  "5,000–25,000 plants",
+  "More than 25,000 plants",
+];
+
+export const NURSERY_HELP_OPTIONS = [
+  "Plant Disease Detection",
+  "Stock Health Monitoring",
+  "Bulk Order Leads",
+  "Delivery & Logistics",
+  "Soil & Growing Media",
+  "Nursery Supplies",
+  "Labour",
+  "Licensing & Certification",
+  "Financial Services",
+  "Marketing & Catalogue",
+];
+
+export const NURSERY_SERVICES: FarmService[] = [
+  {
+    key: "bulk",
+    label: "Bulk Order Leads",
+    description: "Buyer enquiries for wholesale stock",
+    icon: ShoppingCart,
+  },
+  {
+    key: "logistics",
+    label: "Delivery & Logistics",
+    description: "Move plants and bulk orders safely",
+    icon: Truck,
+  },
+  {
+    key: "media",
+    label: "Soil & Growing Media",
+    description: "Potting mix, cocopeat and nutrients",
+    icon: Boxes,
+  },
+  {
+    key: "supplies",
+    label: "Nursery Supplies",
+    description: "Pots, trays, shade nets and tools",
+    icon: Package,
+  },
+  {
+    key: "labour",
+    label: "Labour Services",
+    description: "Find nursery workers nearby",
+    icon: Users,
+  },
+  {
+    key: "certification",
+    label: "Licensing & Certification",
+    description: "Plant health and export certificates",
+    icon: BadgeCheck,
+  },
+  {
+    key: "finance",
+    label: "Financial Services",
+    description: "Loans, insurance and schemes",
+    icon: Banknote,
+  },
+  {
+    key: "marketing",
+    label: "Marketing & Catalogue",
+    description: "List your stock and reach buyers",
+    icon: Megaphone,
+  },
+  {
+    key: "advisory",
+    label: "Plant Health Advisory",
+    description: "Expert help for stock problems",
+    icon: Microscope,
+  },
+];
+
+/** Sample, purpose-written nursery offers — not live commercial data. */
+export const NURSERY_OFFERS: Offer[] = [
+  {
+    key: "wholesale",
+    category: "Wholesale",
+    title: "Publish your stock catalogue",
+    description:
+      "List the varieties and quantities you can supply so bulk buyers can find you.",
+    cta: "Set up catalogue",
+    icon: ClipboardList,
+  },
+  {
+    key: "greenhouse",
+    category: "Government Scheme",
+    title: "Protected cultivation subsidy",
+    description:
+      "Support for greenhouses, shade nets and drip irrigation is available in many states.",
+    cta: "Check eligibility",
+    icon: Sprout,
+  },
+  {
+    key: "certification",
+    category: "Certification",
+    title: "Plant health certification",
+    description:
+      "Phytosanitary certificates can open up inter-state and export orders for your stock.",
+    cta: "How to apply",
+    icon: BadgeCheck,
+  },
+  {
+    key: "media",
+    category: "Growing Media",
+    title: "Cocopeat & potting mix supply",
+    description:
+      "Compare bulk prices for growing media without leaving the nursery to source it.",
+    cta: "Compare suppliers",
+    icon: Boxes,
+  },
+  {
+    key: "logistics",
+    category: "Logistics",
+    title: "Plant-safe transport",
+    description:
+      "Book vehicles equipped for live plants, with guidance on packing stock for transit.",
+    cta: "Book transport",
+    icon: Truck,
+  },
+  {
+    key: "market",
+    category: "Market",
+    title: "Seasonal demand trends",
+    description:
+      "Understand which plant categories buyers are asking for before you propagate.",
+    cta: "See trends",
+    icon: TrendingUp,
+  },
+];
+
+export const NURSERY_ICON = Flower2;
+export const FARMER_ICON = Wheat;
+
+/** Role card copy used on the onboarding role step. */
+export const WORKSPACE_ROLES: {
+  role: WorkspaceRole;
+  label: string;
+  tagline: string;
+  description: string;
+  icon: LucideIcon;
+}[] = [
+  {
+    role: "farmer",
+    label: "Farmer",
+    tagline: "I grow crops in the field",
+    description:
+      "Disease checks, crop health and farm services for the land you cultivate.",
+    icon: Wheat,
+  },
+  {
+    role: "nursery",
+    label: "Nursery",
+    tagline: "I grow and sell plants",
+    description:
+      "Stock health, bulk buyers and supplies for a plant nursery or garden centre.",
+    icon: Flower2,
   },
 ];
 

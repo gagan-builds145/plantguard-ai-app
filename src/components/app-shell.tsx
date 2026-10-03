@@ -4,6 +4,7 @@ import { useFarmerProfile } from "@/hooks/use-farmer";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import {
+  Flower2,
   History,
   Home,
   ScanLine,
@@ -16,7 +17,10 @@ import { Link, useLocation } from "react-router";
 
 type NavItem = {
   key: string;
-  labelKey: MessageKey;
+  /** Shared, translated label. */
+  labelKey?: MessageKey;
+  /** Role-specific label kept in English for clarity. */
+  label?: string;
   to: string;
   icon: typeof Home;
   emphasized?: boolean;
@@ -32,12 +36,21 @@ const MOBILE_NAV: NavItem[] = [
 ];
 
 /** Desktop sidebar navigation */
-const DESKTOP_NAV: NavItem[] = [
+const FARMER_DESKTOP_NAV: NavItem[] = [
   { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
   { key: "scan", labelKey: "nav.checkYourPlant", to: "/scan", icon: ScanLine },
   { key: "services", labelKey: "nav.farmServices", to: "/services", icon: Sprout },
   { key: "crops", labelKey: "nav.crops", to: "/crops", icon: Wheat },
   { key: "history", labelKey: "nav.scanHistory", to: "/history", icon: History },
+  { key: "profile", labelKey: "nav.profile", to: "/profile", icon: UserRound },
+];
+
+const NURSERY_DESKTOP_NAV: NavItem[] = [
+  { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
+  { key: "scan", label: "Check Stock", to: "/scan", icon: ScanLine },
+  { key: "services", label: "Nursery Services", to: "/services", icon: Sprout },
+  { key: "stock", label: "My Stock", to: "/stock", icon: Flower2 },
+  { key: "history", label: "Scan History", to: "/history", icon: History },
   { key: "profile", labelKey: "nav.profile", to: "/profile", icon: UserRound },
 ];
 
@@ -64,14 +77,21 @@ export function AppShell({
   const { user } = useAuth();
   const { t } = useI18n();
 
+  const isNursery = profile?.role === "nursery";
+  const roleLabel = isNursery ? "Nursery" : t("shell.farmer");
+  const desktopNav = isNursery ? NURSERY_DESKTOP_NAV : FARMER_DESKTOP_NAV;
+
   const name =
     profile?.displayName?.split(" ")[0] ||
     user?.name?.split(" ")[0] ||
-    t("shell.farmer");
+    roleLabel;
   const initials = (profile?.displayName || user?.name || "F")
     .trim()
     .slice(0, 1)
     .toUpperCase();
+
+  const navLabel = (item: NavItem) =>
+    item.labelKey ? t(item.labelKey) : (item.label ?? "");
 
   return (
     <div className="min-h-screen bg-surface-2">
@@ -84,14 +104,18 @@ export function AppShell({
         </div>
 
         <div className="mx-4 flex items-center gap-2 rounded-xl bg-accent px-3 py-2.5">
-          <Sprout className="size-4 text-primary" />
+          {isNursery ? (
+            <Flower2 className="size-4 text-primary" />
+          ) : (
+            <Sprout className="size-4 text-primary" />
+          )}
           <span className="text-xs font-semibold text-accent-foreground">
-            {t("shell.farmerWorkspace")}
+            {isNursery ? "Nursery workspace" : t("shell.farmerWorkspace")}
           </span>
         </div>
 
         <nav className="mt-4 flex flex-1 flex-col gap-1 px-3" aria-label="Main">
-          {DESKTOP_NAV.map((item) => {
+          {desktopNav.map((item) => {
             const isCurrent = isActive(pathname, item.to);
             const Icon = item.icon;
             return (
@@ -110,7 +134,7 @@ export function AppShell({
                   className={cn("size-5", isCurrent && "text-primary")}
                   strokeWidth={isCurrent ? 2.4 : 2}
                 />
-                {t(item.labelKey)}
+                {navLabel(item)}
               </Link>
             );
           })}
@@ -126,7 +150,7 @@ export function AppShell({
             </span>
             <span className="flex min-w-0 flex-col">
               <span className="truncate text-sm font-semibold text-foreground">
-                {profile?.displayName || user?.name || t("shell.farmer")}
+                {profile?.displayName || user?.name || roleLabel}
               </span>
               <span className="truncate text-xs text-muted-foreground">
                 {profile?.location
@@ -211,7 +235,7 @@ export function AppShell({
                       <Icon className="size-6" strokeWidth={2.2} />
                     </span>
                     <span className="text-[11px] font-semibold text-primary">
-                      {t(item.labelKey)}
+                      {navLabel(item)}
                     </span>
                   </Link>
                 </li>
@@ -231,7 +255,7 @@ export function AppShell({
                     className="size-6"
                     strokeWidth={isCurrent ? 2.4 : 2}
                   />
-                  {t(item.labelKey)}
+                  {navLabel(item)}
                 </Link>
               </li>
             );

@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { useMutation, useQuery } from "convex/react";
 import { Camera, Check, Leaf, Loader2, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link, Navigate } from "react-router";
 import { toast } from "sonner";
 
 export default function MyCrops() {
@@ -74,6 +74,10 @@ export default function MyCrops() {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (profile?.role === "nursery") {
+    return <Navigate to="/stock" replace />;
   }
 
   return (

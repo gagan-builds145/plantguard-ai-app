@@ -1,12 +1,8 @@
 import { AppShell } from "@/components/app-shell";
+import { NurseryDashboard } from "@/pages/NurseryDashboard";
+import { OffersCarousel } from "@/components/offers-carousel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  type CarouselApi,
-} from "@/components/ui/carousel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/convex/_generated/api";
 import { useFarmerProfile } from "@/hooks/use-farmer";
@@ -21,10 +17,7 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "convex/react";
 import { formatDistanceToNow } from "date-fns";
 import {
-  ArrowRight,
   Camera,
-  ChevronLeft,
-  ChevronRight,
   CloudSun,
   Droplets,
   Leaf,
@@ -34,7 +27,7 @@ import {
   ThermometerSun,
   Wheat,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, Navigate } from "react-router";
 
 function greetingKey(): MessageKey {
@@ -83,121 +76,6 @@ function StatusBadge({ status }: { status: HealthStatus }) {
   );
 }
 
-function OffersCarousel() {
-  const { t } = useI18n();
-  const [api, setApi] = useState<CarouselApi>();
-  const [paused, setPaused] = useState(false);
-  const [selected, setSelected] = useState(0);
-
-  useEffect(() => {
-    if (!api) return;
-    setSelected(api.selectedScrollSnap());
-    const onSelect = () => setSelected(api.selectedScrollSnap());
-    api.on("select", onSelect);
-    return () => {
-      api.off("select", onSelect);
-    };
-  }, [api]);
-
-  useEffect(() => {
-    if (!api || paused) return;
-    const timer = window.setInterval(() => {
-      api.scrollNext();
-    }, 5200);
-    return () => window.clearInterval(timer);
-  }, [api, paused]);
-
-  return (
-    <section aria-labelledby="offers-heading">
-      <div className="mb-4 flex items-end justify-between">
-        <div>
-          <h2
-            id="offers-heading"
-            className="text-lg font-semibold tracking-[-0.01em] text-foreground"
-          >
-            {t("dash.offers")}
-          </h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Schemes and inputs relevant to your crops
-          </p>
-        </div>
-        <div className="hidden gap-2 lg:flex">
-          <Button
-            size="icon"
-            variant="outline"
-            className="size-9 rounded-full"
-            aria-label="Previous offer"
-            onClick={() => api?.scrollPrev()}
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            className="size-9 rounded-full"
-            aria-label="Next offer"
-            onClick={() => api?.scrollNext()}
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      </div>
-
-      <div
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-        onTouchStart={() => setPaused(true)}
-      >
-        <Carousel setApi={setApi} opts={{ align: "start", loop: true }}>
-          <CarouselContent>
-            {FARMER_OFFERS.map((offer) => {
-              const Icon = offer.icon;
-              return (
-                <CarouselItem
-                  key={offer.key}
-                  className="basis-[85%] sm:basis-[60%] lg:basis-1/3"
-                >
-                  <div className="flex h-full flex-col rounded-2xl border border-border bg-card p-5 shadow-[0_1px_3px_rgba(20,40,20,0.06)]">
-                    <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-primary">
-                      <Icon className="size-5" />
-                    </span>
-                    <span className="mt-4 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                      {offer.category}
-                    </span>
-                    <h3 className="mt-1 text-[15px] font-semibold text-foreground">
-                      {offer.title}
-                    </h3>
-                    <p className="mt-1.5 flex-1 text-sm leading-6 text-muted-foreground">
-                      {offer.description}
-                    </p>
-                    <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
-                      {offer.cta}
-                      <ArrowRight className="size-3.5" />
-                    </span>
-                  </div>
-                </CarouselItem>
-              );
-            })}
-          </CarouselContent>
-        </Carousel>
-      </div>
-
-      <div className="mt-3 flex justify-center gap-1.5">
-        {FARMER_OFFERS.map((offer, index) => (
-          <span
-            key={offer.key}
-            aria-hidden
-            className={cn(
-              "h-1.5 rounded-full transition-all",
-              index === selected ? "w-5 bg-primary" : "w-1.5 bg-border",
-            )}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export default function Dashboard() {
   const { profile, isLoading } = useFarmerProfile();
   const { t } = useI18n();
@@ -239,6 +117,10 @@ export default function Dashboard() {
     !profile || (!profile.onboardedAt && !profile.displayName);
   if (needsOnboarding) {
     return <Navigate to="/onboarding" replace />;
+  }
+
+  if (profile.role === "nursery") {
+    return <NurseryDashboard profile={profile} />;
   }
 
   const where = profile.location
@@ -291,7 +173,11 @@ export default function Dashboard() {
         </Link>
 
         {/* Offers */}
-        <OffersCarousel />
+        <OffersCarousel
+          offers={FARMER_OFFERS}
+          title={t("dash.offers")}
+          subtitle="Schemes and inputs relevant to your crops"
+        />
 
         {/* Farm services */}
         <section aria-labelledby="services-heading">

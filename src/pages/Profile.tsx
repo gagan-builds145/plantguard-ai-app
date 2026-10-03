@@ -38,6 +38,7 @@ import { LANGUAGES, LOCATIONS } from "@/lib/plantguard-data";
 import { useMutation } from "convex/react";
 import {
   ChevronRight,
+  Flower2,
   Globe,
   HelpCircle,
   Leaf,
@@ -138,7 +139,9 @@ export default function Profile() {
   const states = country ? Object.keys(LOCATIONS[country] ?? {}) : [];
   const cities = country && state ? (LOCATIONS[country]?.[state] ?? []) : [];
 
-  const displayName = profile?.displayName || user?.name || "Farmer";
+  const isNursery = profile?.role === "nursery";
+  const displayName =
+    profile?.displayName || user?.name || (isNursery ? "Nursery" : "Farmer");
   const initials = displayName.trim().slice(0, 1).toUpperCase();
   const languageLabel =
     LANGUAGES.find((item) => item.code === profile?.language)?.native ??
@@ -218,8 +221,12 @@ export default function Profile() {
             </h1>
             <div className="mt-1.5 flex flex-wrap items-center gap-2">
               <Badge className="h-7 gap-1.5 border-transparent bg-accent px-2.5 text-xs text-accent-foreground">
-                <Sprout className="size-3.5" />
-                Farmer
+                {isNursery ? (
+                  <Flower2 className="size-3.5" />
+                ) : (
+                  <Sprout className="size-3.5" />
+                )}
+                {isNursery ? "Nursery" : "Farmer"}
               </Badge>
               <span className="text-sm text-muted-foreground">
                 {profile?.location
@@ -263,16 +270,29 @@ export default function Profile() {
             }
             disabled
           />
-          <Row
-            icon={Leaf}
-            title={t("profile.myCrops")}
-            description={
-              profile?.crops.length
-                ? `${profile.crops.length} crop${profile.crops.length > 1 ? "s" : ""} selected`
-                : "No crops added yet"
-            }
-            to="/crops"
-          />
+          {isNursery ? (
+            <Row
+              icon={Flower2}
+              title="My stock"
+              description={
+                profile?.nurseryCategories?.length
+                  ? `${profile.nurseryCategories.length} categor${profile.nurseryCategories.length > 1 ? "ies" : "y"} selected`
+                  : "No stock categories added yet"
+              }
+              to="/stock"
+            />
+          ) : (
+            <Row
+              icon={Leaf}
+              title={t("profile.myCrops")}
+              description={
+                profile?.crops.length
+                  ? `${profile.crops.length} crop${profile.crops.length > 1 ? "s" : ""} selected`
+                  : "No crops added yet"
+              }
+              to="/crops"
+            />
+          )}
           <Row
             icon={MapPin}
             title={t("profile.location")}
@@ -348,7 +368,7 @@ export default function Profile() {
           <Row
             icon={Wheat}
             title="About PlantGuard AI"
-            description="Deep learning based plant disease detection · Farmer edition"
+            description={`Deep learning based plant disease detection · ${isNursery ? "Nursery" : "Farmer"} edition`}
             disabled
             trailing={<span />}
           />

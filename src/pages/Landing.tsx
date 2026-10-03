@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   Clock3,
   Droplets,
+  Flower2,
   Languages,
   Leaf,
   ScanLine,
@@ -18,6 +19,7 @@ import {
   Sprout,
   Tractor,
   Users,
+  Wheat,
 } from "lucide-react";
 import { Link } from "react-router";
 
@@ -137,6 +139,19 @@ const SERVICES = [
   { icon: Sprout, label: "Inputs & seeds" },
 ];
 
+const WORKSPACES = [
+  {
+    icon: Wheat,
+    label: "Farmer workspace",
+    body: "Crop health, disease guidance and the everyday services around your field.",
+  },
+  {
+    icon: Flower2,
+    label: "Nursery workspace",
+    body: "Stock health, bulk buyer leads and the supplies a plant nursery needs.",
+  },
+];
+
 export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
@@ -199,8 +214,8 @@ export default function Landing() {
             <p className="mt-5 max-w-xl text-[16px] leading-7 text-muted-foreground">
               PlantGuard AI turns a single photo of a leaf into a clear,
               confidence-scored reading of your plant&apos;s health — with
-              practical next steps you can act on today. Built for farmers
-              working in the field.
+              practical next steps you can act on today. Built for farmers in
+              the field and nursery growers at the bench.
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -388,6 +403,50 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Workspaces */}
+      <section className="border-t border-border bg-surface-2 py-16 lg:py-20">
+        <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8">
+          <motion.div {...fadeUp} className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+              One app, two workspaces
+            </p>
+            <h2 className="mt-3 text-[28px] font-bold tracking-[-0.02em] text-foreground sm:text-[36px]">
+              Choose the workspace that matches how you grow
+            </h2>
+            <p className="mt-3 text-[16px] leading-7 text-muted-foreground">
+              Pick Farmer or Nursery during setup and PlantGuard AI tailors the
+              dashboard, services and guidance to your work.
+            </p>
+          </motion.div>
+
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
+            {WORKSPACES.map((workspace, index) => {
+              const Icon = workspace.icon;
+              return (
+                <motion.div
+                  key={workspace.label}
+                  {...fadeUp}
+                  transition={{ ...fadeUp.transition, delay: index * 0.06 }}
+                  className="flex items-start gap-4 rounded-2xl border border-border bg-card p-6 shadow-[0_1px_3px_rgba(20,40,20,0.06)]"
+                >
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-accent text-primary">
+                    <Icon className="size-6" />
+                  </span>
+                  <div>
+                    <h3 className="text-lg font-semibold tracking-[-0.01em] text-foreground">
+                      {workspace.label}
+                    </h3>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                      {workspace.body}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Services band */}
       <section id="services" className="border-y border-border bg-ink py-14 text-white lg:py-16">
         <div className="mx-auto w-full max-w-[1200px] px-4 sm:px-6 lg:px-8">
@@ -436,8 +495,8 @@ export default function Landing() {
               Start checking your plants today
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-[15px] leading-7 text-muted-foreground">
-              Create your farmer profile in under two minutes and run your first
-              plant check right away.
+              Create your profile in under two minutes — choose Farmer or
+              Nursery — and run your first plant check right away.
             </p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <Button
@@ -474,7 +533,8 @@ export default function Landing() {
             </p>
           </div>
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} PlantGuard AI · Farmer edition
+            © {new Date().getFullYear()} PlantGuard AI · Farmer &amp; Nursery
+            editions
           </p>
         </div>
       </footer>

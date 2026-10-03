@@ -39,6 +39,8 @@ const schema = defineSchema(
       phone: v.optional(v.string()),
       language: v.optional(v.string()),
       onboardedAt: v.optional(v.number()),
+      // Workspace role. Defaults to "farmer" when unset (existing accounts).
+      role: v.optional(v.union(v.literal("farmer"), v.literal("nursery"))),
       location: v.optional(
         v.object({
           country: v.string(),
@@ -46,9 +48,14 @@ const schema = defineSchema(
           city: v.string(),
         }),
       ),
+      // Farmer fields
       crops: v.array(v.string()),
       farmSize: v.optional(v.string()),
       farmingType: v.optional(v.string()),
+      // Nursery fields
+      nurseryType: v.optional(v.string()),
+      nurseryCategories: v.optional(v.array(v.string())),
+      nurseryScale: v.optional(v.string()),
       helpNeeded: v.array(v.string()),
       createdAt: v.number(),
     }).index("by_user", ["userId"]),

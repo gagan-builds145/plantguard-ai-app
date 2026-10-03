@@ -19,6 +19,12 @@ import {
   FARMING_TYPES,
   LANGUAGES,
   LOCATIONS,
+  NURSERY_CATEGORY_GROUPS,
+  NURSERY_HELP_OPTIONS,
+  NURSERY_SCALES,
+  NURSERY_TYPES,
+  WORKSPACE_ROLES,
+  type WorkspaceRole,
 } from "@/lib/plantguard-data";
 import { cn } from "@/lib/utils";
 import { useMutation } from "convex/react";
@@ -37,13 +43,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
-const STEPS = [
-  "Your name",
-  "Location",
-  "Language",
-  "Your farm",
-  "How we help",
-] as const;
+// Role · Name · Location · Language · Farm/Nursery · Help
+const TOTAL_STEPS = 6;
 
 function Chip({
   label,
@@ -121,6 +122,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
 
+  const [role, setRole] = useState<WorkspaceRole | "">("");
   const [displayName, setDisplayName] = useState("");
   const [country, setCountry] = useState("");
   const [state, setState] = useState("");
@@ -131,8 +133,13 @@ export default function Onboarding() {
   const [crops, setCrops] = useState<string[]>([]);
   const [farmSize, setFarmSize] = useState("");
   const [farmingType, setFarmingType] = useState("");
+  const [nurseryType, setNurseryType] = useState("");
+  const [nurseryCategories, setNurseryCategories] = useState<string[]>([]);
+  const [nurseryScale, setNurseryScale] = useState("");
   const [helpNeeded, setHelpNeeded] = useState<string[]>([]);
   const [nameError, setNameError] = useState<string | null>(null);
+
+  const isNursery = role === "nursery";
 
   useEffect(() => {
     if (user?.name && !displayName) setDisplayName(user.name);
@@ -156,6 +163,12 @@ export default function Onboarding() {
     setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
   }
 
+  function chooseRole(next: WorkspaceRole) {
+    setRole(next);
+    // Help options differ by role — start fresh when the role changes.
+    setHelpNeeded([]);
+  }
+
   async function persist(patch: Parameters<typeof saveProfile>[0]) {
     setSaving(true);
     try {
@@ -170,6 +183,15 @@ export default function Onboarding() {
 
   async function next() {
     if (step === 0) {
+      if (!role) return;
+      try {
+        await persist({ role });
+      } catch {
+        return;
+      }
+    }
+
+    if (step === 1) {
       if (displayName.trim().length < 2) {
         setNameError("Please enter your name.");
         return;
@@ -182,7 +204,7 @@ export default function Onboarding() {
       }
     }
 
-    if (step === 1) {
+    if (step === 2) {
       try {
         await persist(
           locationChosen && country && state && city
@@ -194,7 +216,7 @@ export default function Onboarding() {
       }
     }
 
-    if (step === 2) {
+    if (step === 3) {
       try {
         await persist({ language });
       } catch {
@@ -202,15 +224,19 @@ export default function Onboarding() {
       }
     }
 
-    if (step === 3) {
+    if (step === 4) {
       try {
-        await persist({ crops, farmSize, farmingType });
+        if (isNursery) {
+          await persist({ nurseryType, nurseryCategories, nurseryScale });
+        } else {
+          await persist({ crops, farmSize, farmingType });
+        }
       } catch {
         return;
       }
     }
 
-    setStep((value) => Math.min(value + 1, STEPS.length));
+    setStep((value) => Math.min(value + 1, TOTAL_STEPS));
   }
 
   async function finish() {
@@ -225,17 +251,22 @@ export default function Onboarding() {
     }
   }
 
-  const total = STEPS.length;
+  const total = TOTAL_STEPS;
   const isDone = step === total;
 
   // Every step needs a choice before the user can move on.
   const canContinue = [
+    role !== "",
     displayName.trim().length >= 2,
     locationChosen && Boolean(country && state && city),
     language !== "",
-    crops.length > 0 && farmSize !== "" && farmingType !== "",
+    isNursery
+      ? nurseryCategories.length > 0 && nurseryType !== "" && nurseryScale !== ""
+      : crops.length > 0 && farmSize !== "" && farmingType !== "",
     helpNeeded.length > 0,
   ][step] ?? false;
+
+  const helpOptions = isNursery ? NURSERY_HELP_OPTIONS : FARMER_HELP_OPTIONS;
 
   return (
     <div className="min-h-screen bg-surface-2">
@@ -265,9 +296,69 @@ export default function Onboarding() {
             <h1 className="mt-5 text-[26px] font-bold tracking-[-0.02em] text-foreground">
               Welcome to PlantGuard AI
             </h1>
+            <p className="mt-2 max-w-lg text-[15px] leading-7 text-muted-foreground">
+              First, tell us how you work with plants. We&apos;ll tailor your
+              workspace, services and guidance to match. You can change this
+              later from your profile.
+            </p>
+
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              {WORKSPACE_ROLES.map((item) => {
+                const Icon = item.icon;
+                const selected = role === item.role;
+                return (
+                  <button
+                    key={item.role}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => chooseRole(item.role)}
+                    className={cn(
+                      "flex flex-col items-start gap-3 rounded-2xl border p-5 text-left transition-colors",
+                      selected
+                        ? "border-primary bg-accent"
+                        : "border-border bg-card hover:border-primary/40",
+                    )}
+                  >
+                    <span className="flex w-full items-center justify-between">
+                      <span className="flex size-11 items-center justify-center rounded-xl bg-card text-primary">
+                        <Icon className="size-6" />
+                      </span>
+                      {selected ? (
+                        <CheckCircle2 className="size-5 text-primary" />
+                      ) : (
+                        <span className="size-5 rounded-full border border-border" />
+                      )}
+                    </span>
+                    <span>
+                      <span className="block text-[17px] font-bold text-foreground">
+                        {item.label}
+                      </span>
+                      <span className="mt-0.5 block text-xs font-medium text-primary">
+                        {item.tagline}
+                      </span>
+                    </span>
+                    <span className="text-sm leading-6 text-muted-foreground">
+                      {item.description}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {step === 1 && (
+          <section className="rounded-3xl border border-border bg-card p-6 shadow-[0_4px_12px_rgba(20,40,20,0.08)] sm:p-10">
+            <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-accent text-primary">
+              <Leaf className="size-6" />
+            </span>
+            <h1 className="mt-5 text-[26px] font-bold tracking-[-0.02em] text-foreground">
+              {isNursery
+                ? "Let's set up your nursery"
+                : "Let's set up your farm workspace"}
+            </h1>
             <p className="mt-2 max-w-md text-[15px] leading-7 text-muted-foreground">
-              Let&apos;s personalise your farmer workspace. It takes about two
-              minutes, and you can change everything later.
+              It takes about two minutes, and you can change everything later.
             </p>
 
             <div className="mt-8 flex max-w-md flex-col gap-2">
@@ -296,7 +387,7 @@ export default function Onboarding() {
           </section>
         )}
 
-        {step === 1 && (
+        {step === 2 && (
           <section className="rounded-3xl border border-border bg-card p-6 shadow-[0_4px_12px_rgba(20,40,20,0.08)] sm:p-10">
             <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-accent text-primary">
               <MapPin className="size-6" />
@@ -404,7 +495,7 @@ export default function Onboarding() {
           </section>
         )}
 
-        {step === 2 && (
+        {step === 3 && (
           <section className="rounded-3xl border border-border bg-card p-6 shadow-[0_4px_12px_rgba(20,40,20,0.08)] sm:p-10">
             <span className="inline-flex size-12 items-center justify-center rounded-2xl bg-accent text-primary">
               <Sparkles className="size-6" />
@@ -468,7 +559,7 @@ export default function Onboarding() {
           </section>
         )}
 
-        {step === 3 && (
+        {step === 4 && !isNursery && (
           <section className="flex flex-col gap-5">
             <div className="rounded-3xl border border-border bg-card p-6 shadow-[0_4px_12px_rgba(20,40,20,0.08)] sm:p-8">
               <h1 className="text-[24px] font-bold tracking-[-0.02em] text-foreground">
@@ -539,7 +630,87 @@ export default function Onboarding() {
           </section>
         )}
 
-        {step === 4 && (
+        {step === 4 && isNursery && (
+          <section className="flex flex-col gap-5">
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-[0_4px_12px_rgba(20,40,20,0.08)] sm:p-8">
+              <h1 className="text-[24px] font-bold tracking-[-0.02em] text-foreground">
+                Tell us about your nursery
+              </h1>
+              <p className="mt-2 text-[15px] leading-7 text-muted-foreground">
+                Select the plant categories you grow or stock. This personalises
+                stock health tracking and your dashboard.
+              </p>
+
+              <div className="mt-6 flex flex-col gap-6">
+                {NURSERY_CATEGORY_GROUPS.map((group) => (
+                  <div key={group.group}>
+                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      {group.group}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {group.items.map((item) => (
+                        <Chip
+                          key={`${group.group}-${item}`}
+                          label={item}
+                          selected={nurseryCategories.includes(item)}
+                          onToggle={() =>
+                            toggle(
+                              nurseryCategories,
+                              item,
+                              setNurseryCategories,
+                            )
+                          }
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {nurseryCategories.length > 0 && (
+                <p className="mt-5 text-sm font-medium text-primary">
+                  {nurseryCategories.length} categor
+                  {nurseryCategories.length > 1 ? "ies" : "y"} selected
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-[0_4px_12px_rgba(20,40,20,0.08)] sm:p-8">
+              <h2 className="text-lg font-semibold text-foreground">
+                Nursery type
+              </h2>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {NURSERY_TYPES.map((type) => (
+                  <OptionCard
+                    key={type}
+                    label={type}
+                    description="How your nursery mainly operates"
+                    selected={nurseryType === type}
+                    onSelect={() => setNurseryType(type)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-[0_4px_12px_rgba(20,40,20,0.08)] sm:p-8">
+              <h2 className="text-lg font-semibold text-foreground">
+                Nursery scale
+              </h2>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {NURSERY_SCALES.map((scale) => (
+                  <OptionCard
+                    key={scale}
+                    label={scale}
+                    description="Approximate plants held at any time"
+                    selected={nurseryScale === scale}
+                    onSelect={() => setNurseryScale(scale)}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {step === 5 && (
           <section className="rounded-3xl border border-border bg-card p-6 shadow-[0_4px_12px_rgba(20,40,20,0.08)] sm:p-10">
             <h1 className="text-[24px] font-bold tracking-[-0.02em] text-foreground">
               Where would you like help?
@@ -549,7 +720,7 @@ export default function Onboarding() {
               Select as many as you like.
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
-              {FARMER_HELP_OPTIONS.map((option) => (
+              {helpOptions.map((option) => (
                 <Chip
                   key={option}
                   label={option}
@@ -560,7 +731,7 @@ export default function Onboarding() {
             </div>
             {helpNeeded.length === 0 && (
               <p className="mt-5 text-xs text-muted-foreground">
-                You can skip this and update it later from your profile.
+                Select at least one option to continue.
               </p>
             )}
           </section>
@@ -575,8 +746,8 @@ export default function Onboarding() {
               Profile ready
             </h1>
             <p className="mx-auto mt-3 max-w-md text-[15px] leading-7 text-muted-foreground">
-              Your PlantGuard AI experience has been personalised based on your
-              role and preferences.
+              Your PlantGuard AI {isNursery ? "nursery" : "farmer"} experience has
+              been personalised based on your role and preferences.
             </p>
             <Button
               className="mt-8 h-12 w-full rounded-xl text-[15px] font-semibold sm:w-auto sm:px-8"
@@ -590,7 +761,7 @@ export default function Onboarding() {
                 </>
               ) : (
                 <>
-                  Go to dashboard
+                  Go to {isNursery ? "nursery" : "dashboard"}
                   <ArrowRight className="size-4" />
                 </>
               )}

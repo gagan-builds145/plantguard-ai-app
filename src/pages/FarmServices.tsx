@@ -1,17 +1,23 @@
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FARM_SERVICES } from "@/lib/plantguard-data";
+import { useFarmerProfile } from "@/hooks/use-farmer";
+import { FARM_SERVICES, NURSERY_SERVICES } from "@/lib/plantguard-data";
 import { ArrowRight, Camera, Info } from "lucide-react";
 import { Link } from "react-router";
 
 export default function FarmServices() {
+  const { profile } = useFarmerProfile();
+  const isNursery = profile?.role === "nursery";
+
+  const services = isNursery ? NURSERY_SERVICES : FARM_SERVICES;
+  const title = isNursery ? "Nursery services" : "Farm services";
+  const subtitle = isNursery
+    ? "Bulk orders, logistics, supplies and certification — organised for your nursery."
+    : "Water, irrigation, labour, inputs and finance — organised for your farm.";
+
   return (
-    <AppShell
-      active="services"
-      title="Farm services"
-      subtitle="Water, irrigation, labour, inputs and finance — organised for your farm."
-    >
+    <AppShell active="services" title={title} subtitle={subtitle}>
       <div className="mx-auto flex w-full max-w-[1000px] flex-col gap-6">
         <div className="flex items-start gap-3 rounded-2xl border border-border bg-info-bg p-4">
           <Info className="mt-0.5 size-5 shrink-0 text-info" />
@@ -21,13 +27,13 @@ export default function FarmServices() {
             </p>
             <p className="mt-0.5 text-sm text-muted-foreground">
               Version 1 focuses on AI plant checks. Browse what will be available
-              from your farmer workspace.
+              from your {isNursery ? "nursery" : "farmer"} workspace.
             </p>
           </div>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {FARM_SERVICES.map((service) => {
+          {services.map((service) => {
             const Icon = service.icon;
             return (
               <div
@@ -54,7 +60,7 @@ export default function FarmServices() {
         <div className="flex flex-col items-start gap-4 rounded-3xl bg-linear-to-br from-[#17351C] to-[#1B5E20] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div>
             <h2 className="text-xl font-bold tracking-[-0.02em] text-white">
-              While you wait, check your plant
+              While you wait, {isNursery ? "check your stock" : "check your plant"}
             </h2>
             <p className="mt-1.5 max-w-md text-sm leading-6 text-white/70">
               The AI plant scanner is ready now. Scan a leaf and get practical
@@ -67,7 +73,7 @@ export default function FarmServices() {
           >
             <Link to="/scan">
               <Camera className="size-5" />
-              Check Plant
+              {isNursery ? "Check Stock" : "Check Plant"}
               <ArrowRight className="size-4" />
             </Link>
           </Button>
