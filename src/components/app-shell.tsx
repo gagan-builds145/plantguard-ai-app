@@ -7,6 +7,7 @@ import {
   Flower2,
   History,
   Home,
+  Image as ImageIcon,
   ScanLine,
   Sprout,
   UserRound,
@@ -26,12 +27,21 @@ type NavItem = {
   emphasized?: boolean;
 };
 
-/** Mobile bottom navigation: Home · Services · Check Plant · History · Profile */
-const MOBILE_NAV: NavItem[] = [
+/** Farmer mobile bottom navigation: Home · Services · Check Plant · History · Profile */
+const FARMER_MOBILE_NAV: NavItem[] = [
   { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
   { key: "services", labelKey: "nav.services", to: "/services", icon: Sprout },
   { key: "scan", labelKey: "nav.scan", to: "/scan", icon: ScanLine, emphasized: true },
   { key: "history", labelKey: "nav.history", to: "/history", icon: History },
+  { key: "profile", labelKey: "nav.profile", to: "/profile", icon: UserRound },
+];
+
+/** Nursery mobile bottom navigation: Home · Feed · Check Stock · Stock · Profile */
+const NURSERY_MOBILE_NAV: NavItem[] = [
+  { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
+  { key: "feed", label: "Feed", to: "/feed", icon: ImageIcon },
+  { key: "scan", label: "Check", to: "/scan", icon: ScanLine, emphasized: true },
+  { key: "stock", label: "Stock", to: "/stock", icon: Flower2 },
   { key: "profile", labelKey: "nav.profile", to: "/profile", icon: UserRound },
 ];
 
@@ -47,6 +57,7 @@ const FARMER_DESKTOP_NAV: NavItem[] = [
 
 const NURSERY_DESKTOP_NAV: NavItem[] = [
   { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
+  { key: "feed", label: "Feed", to: "/feed", icon: ImageIcon },
   { key: "scan", label: "Check Stock", to: "/scan", icon: ScanLine },
   { key: "services", label: "Nursery Services", to: "/services", icon: Sprout },
   { key: "stock", label: "My Stock", to: "/stock", icon: Flower2 },
@@ -80,6 +91,7 @@ export function AppShell({
   const isNursery = profile?.role === "nursery";
   const roleLabel = isNursery ? "Nursery" : t("shell.farmer");
   const desktopNav = isNursery ? NURSERY_DESKTOP_NAV : FARMER_DESKTOP_NAV;
+  const mobileNav = isNursery ? NURSERY_MOBILE_NAV : FARMER_MOBILE_NAV;
 
   const name =
     profile?.displayName?.split(" ")[0] ||
@@ -215,7 +227,7 @@ export function AppShell({
         className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
       >
         <ul className="mx-auto grid h-[72px] max-w-lg grid-cols-5">
-          {MOBILE_NAV.map((item) => {
+          {mobileNav.map((item) => {
             const isCurrent = active === item.key;
             const Icon = item.icon;
             if (item.emphasized) {

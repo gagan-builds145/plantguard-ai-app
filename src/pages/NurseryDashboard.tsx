@@ -18,10 +18,12 @@ import { formatDistanceToNow } from "date-fns";
 import {
   Camera,
   Flower2,
+  Image as ImageIcon,
   Leaf,
   MapPin,
   ScanLine,
   Sparkles,
+  Upload,
 } from "lucide-react";
 import { useMemo } from "react";
 import { Link } from "react-router";
@@ -50,6 +52,7 @@ export function NurseryDashboard({
 }) {
   const { t } = useI18n();
   const recentScans = useQuery(api.scans.listRecentScans, { limit: 4 });
+  const recentPosts = useQuery(api.posts.listFeed, { limit: 8 });
 
   const categories = useMemo(
     () => profile.nurseryCategories ?? [],
@@ -128,6 +131,83 @@ export function NurseryDashboard({
           title={t("dash.offers")}
           subtitle="Buyer leads, schemes and supplies for your nursery"
         />
+
+        {/* Community feed */}
+        {recentPosts && recentPosts.length > 0 ? (
+          <section aria-labelledby="community-heading">
+            <div className="mb-4 flex items-end justify-between">
+              <div>
+                <h2
+                  id="community-heading"
+                  className="text-lg font-semibold tracking-[-0.01em] text-foreground"
+                >
+                  Nursery community
+                </h2>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  Fresh from nurseries and growers
+                </p>
+              </div>
+              <Link
+                to="/feed"
+                className="text-sm font-semibold text-primary hover:underline"
+              >
+                View feed
+              </Link>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {recentPosts.map((post) => (
+                <Link
+                  key={post._id}
+                  to="/feed"
+                  className="group relative size-32 shrink-0 overflow-hidden rounded-2xl bg-surface-3"
+                >
+                  {post.imageUrl ? (
+                    <img
+                      src={post.imageUrl}
+                      alt={post.caption || "Nursery post"}
+                      className="size-full object-cover transition-transform duration-200 group-hover:scale-105"
+                    />
+                  ) : (
+                    <span className="flex size-full items-center justify-center text-muted-foreground">
+                      <ImageIcon className="size-6" />
+                    </span>
+                  )}
+                  <span className="absolute inset-x-0 bottom-0 truncate bg-linear-to-t from-black/70 to-transparent px-2.5 pb-2 pt-6 text-[11px] font-semibold text-white">
+                    {post.authorName}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <section aria-labelledby="community-heading">
+            <div className="flex flex-col items-start gap-4 rounded-3xl border border-dashed border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <div className="flex items-start gap-4">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-primary">
+                  <ImageIcon className="size-5" />
+                </span>
+                <div>
+                  <h2
+                    id="community-heading"
+                    className="text-[15px] font-semibold text-foreground"
+                  >
+                    Share your nursery
+                  </h2>
+                  <p className="mt-0.5 max-w-md text-sm text-muted-foreground">
+                    Post photos of your nursery and see what other growers are
+                    sharing in the community feed.
+                  </p>
+                </div>
+              </div>
+              <Button asChild className="h-11 rounded-xl px-5">
+                <Link to="/feed">
+                  <Upload className="size-4" />
+                  Share a post
+                </Link>
+              </Button>
+            </div>
+          </section>
+        )}
 
         {/* Nursery services */}
         <section aria-labelledby="services-heading">

@@ -79,6 +79,20 @@ const schema = defineSchema(
       isDemo: v.boolean(),
       createdAt: v.number(),
     }).index("by_user", ["userId"]),
+
+    // PlantGuard AI — social feed posts (nursery + grower updates)
+    posts: defineTable({
+      userId: v.id("users"),
+      caption: v.string(),
+      imageId: v.id("_storage"),
+      location: v.optional(v.string()),
+      authorName: v.string(),
+      authorRole: v.union(v.literal("farmer"), v.literal("nursery")),
+      likedBy: v.array(v.id("users")),
+      createdAt: v.number(),
+    })
+      .index("by_created", ["createdAt"])
+      .index("by_user", ["userId"]),
   },
   {
     schemaValidation: false,
