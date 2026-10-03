@@ -251,12 +251,18 @@ export type Offer = {
   description: string;
   cta: string;
   icon: LucideIcon;
+  /** Photo shown on the offer card. */
+  image: string;
 };
+
+const unsplash = (id: string) =>
+  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=800&q=60`;
 
 /** Sample, purpose-written farmer offers — not live commercial data. */
 export const FARMER_OFFERS: Offer[] = [
   {
     key: "scheme",
+    image: unsplash("1592982537447-7440770cbfc9"),
     category: "Government Scheme",
     title: "PM-KISAN income support",
     description:
@@ -266,6 +272,7 @@ export const FARMER_OFFERS: Offer[] = [
   },
   {
     key: "insurance",
+    image: unsplash("1574943320219-553eb213f72d"),
     category: "Crop Insurance",
     title: "Kharif crop cover window",
     description:
@@ -275,6 +282,7 @@ export const FARMER_OFFERS: Offer[] = [
   },
   {
     key: "seeds",
+    image: unsplash("1595246140625-573b715d11dc"),
     category: "Seeds",
     title: "Certified seed catalogues",
     description:
@@ -284,6 +292,7 @@ export const FARMER_OFFERS: Offer[] = [
   },
   {
     key: "finance",
+    image: unsplash("1554224155-6726b3ff858f"),
     category: "Financial Services",
     title: "Kisan Credit Card review",
     description:
@@ -293,6 +302,7 @@ export const FARMER_OFFERS: Offer[] = [
   },
   {
     key: "pesticides",
+    image: unsplash("1523348837708-15d4a09cfac2"),
     category: "Agricultural Inputs",
     title: "Integrated pest management",
     description:
@@ -302,6 +312,7 @@ export const FARMER_OFFERS: Offer[] = [
   },
   {
     key: "market",
+    image: unsplash("1542838132-92c53300491e"),
     category: "Market",
     title: "Local mandi price trends",
     description:
@@ -451,6 +462,7 @@ export const NURSERY_SERVICES: FarmService[] = [
 export const NURSERY_OFFERS: Offer[] = [
   {
     key: "wholesale",
+    image: unsplash("1466692476868-aef1dfb1e735"),
     category: "Wholesale",
     title: "Publish your stock catalogue",
     description:
@@ -460,6 +472,7 @@ export const NURSERY_OFFERS: Offer[] = [
   },
   {
     key: "greenhouse",
+    image: unsplash("1416879595882-3373a0480b5b"),
     category: "Government Scheme",
     title: "Protected cultivation subsidy",
     description:
@@ -469,6 +482,7 @@ export const NURSERY_OFFERS: Offer[] = [
   },
   {
     key: "certification",
+    image: unsplash("1464226184884-fa280b87c399"),
     category: "Certification",
     title: "Plant health certification",
     description:
@@ -478,6 +492,7 @@ export const NURSERY_OFFERS: Offer[] = [
   },
   {
     key: "media",
+    image: unsplash("1526304640581-d334cdbbf45e"),
     category: "Growing Media",
     title: "Cocopeat & potting mix supply",
     description:
@@ -487,6 +502,7 @@ export const NURSERY_OFFERS: Offer[] = [
   },
   {
     key: "logistics",
+    image: unsplash("1586528116311-ad8dd3c8310d"),
     category: "Logistics",
     title: "Plant-safe transport",
     description:
@@ -496,6 +512,7 @@ export const NURSERY_OFFERS: Offer[] = [
   },
   {
     key: "market",
+    image: unsplash("1560472354-b33ff0c44a43"),
     category: "Market",
     title: "Seasonal demand trends",
     description:

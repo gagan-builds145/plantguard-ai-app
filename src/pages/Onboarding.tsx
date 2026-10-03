@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
+import { useFarmerProfile } from "@/hooks/use-farmer";
 import { useI18n } from "@/lib/i18n";
 import {
   CROP_GROUPS,
@@ -40,7 +41,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 // Role · Name · Location · Language · Farm/Nursery · Help
@@ -116,6 +117,7 @@ function OptionCard({
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { profile, isLoading: profileLoading } = useFarmerProfile();
   const { t, setLanguage: setUiLanguage } = useI18n();
   const saveProfile = useMutation(api.farmers.saveProfile);
 
@@ -267,6 +269,11 @@ export default function Onboarding() {
   ][step] ?? false;
 
   const helpOptions = isNursery ? NURSERY_HELP_OPTIONS : FARMER_HELP_OPTIONS;
+
+  // Already set up? Skip profile setup and go to the workspace.
+  if (!profileLoading && profile?.onboardedAt) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-surface-2">

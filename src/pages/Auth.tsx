@@ -9,6 +9,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@/hooks/use-auth";
+import { useFarmerProfile } from "@/hooks/use-farmer";
 import { useI18n } from "@/lib/i18n";
 import { useMutation } from "convex/react";
 import {
@@ -56,6 +57,7 @@ type AuthMode = "signin" | "signup";
 
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
+  const { profile, isLoading: profileLoading } = useFarmerProfile();
   const { t } = useI18n();
   const navigate = useNavigate();
   const saveProfile = useMutation(api.farmers.saveProfile);
@@ -80,11 +82,23 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const [error, setError] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(30);
 
+  // Send signed-in users to the right place: brand-new (or not-yet-onboarded)
+  // accounts go straight into profile setup; everyone else continues to their
+  // intended destination.
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      navigate(redirect, { replace: true });
-    }
-  }, [authLoading, isAuthenticated, navigate, redirect]);
+    if (authLoading || !isAuthenticated) return;
+    if (profileLoading) return;
+    const needsOnboarding =
+      !profile || (!profile.onboardedAt && !profile.displayName);
+    navigate(needsOnboarding ? "/onboarding" : redirect, { replace: true });
+  }, [
+    authLoading,
+    isAuthenticated,
+    profileLoading,
+    profile,
+    navigate,
+    redirect,
+  ]);
 
   useEffect(() => {
     if (step !== "verify" || secondsLeft <= 0) return;
@@ -150,7 +164,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       await signIn("email-otp", formData);
 
       if (isSignUp && phone.trim()) {
-        // Store the mobile number on the farmer profile for account recovery.
+        // Store the mobile number on the profile for account recovery.
         try {
           await saveProfile({ phone: normalizePhone(phone) });
         } catch {
@@ -160,7 +174,8 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
         }
       }
 
-      navigate(redirect, { replace: true });
+      // Routing to dashboard vs. profile setup is handled by the effect above
+      // once the profile has loaded.
     } catch {
       setError("Incorrect verification code. Please try again.");
       setOtp("");
@@ -188,11 +203,22 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     setError(null);
     try {
       await signIn("anonymous");
-      navigate(redirect, { replace: true });
+      // Routing is handled by the effect above once the profile has loaded.
     } catch {
       setError("Guest access isn't available right now.");
       setIsLoading(false);
     }
+  }
+
+  if (!authLoading && isAuthenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-surface-2">
+        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+          <Loader2 className="size-6 animate-spin" />
+          <p className="text-sm">Taking you to your workspace…</p>
+        </div>
+      </div>
+    );
   }
 
   const maskedEmail = (() => {
