@@ -2,6 +2,7 @@ import { PlantGuardLogo, PlantGuardMark } from "@/components/brand";
 import { useAuth } from "@/hooks/use-auth";
 import { useFarmerProfile } from "@/hooks/use-farmer";
 import { useI18n, type MessageKey } from "@/lib/i18n";
+import { ROLE_META, isNewRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import {
   BarChart3,
@@ -106,10 +107,28 @@ export function AppShell({
   const { user } = useAuth();
   const { t } = useI18n();
 
+  // The five role workspaces added on top of Farmer / Nursery reuse this shell
+  // with their own navigation sets and a subtle role accent.
+  const meta = isNewRole(profile?.role) ? ROLE_META[profile.role] : null;
   const isNursery = profile?.role === "nursery";
-  const roleLabel = isNursery ? "Nursery" : t("shell.farmer");
-  const desktopNav = isNursery ? NURSERY_DESKTOP_NAV : FARMER_DESKTOP_NAV;
-  const mobileNav = isNursery ? NURSERY_MOBILE_NAV : FARMER_MOBILE_NAV;
+  const roleLabel = meta
+    ? meta.label
+    : isNursery
+      ? "Nursery"
+      : t("shell.farmer");
+  const desktopNav: NavItem[] = meta
+    ? meta.desktopNav
+    : isNursery
+      ? NURSERY_DESKTOP_NAV
+      : FARMER_DESKTOP_NAV;
+  const mobileNav: NavItem[] = meta
+    ? meta.mobileNav
+    : isNursery
+      ? NURSERY_MOBILE_NAV
+      : FARMER_MOBILE_NAV;
+  const homePath = meta ? meta.home : "/dashboard";
+  const backLabel = meta ? `Back to ${meta.short}` : "Back to dashboard";
+  const RoleIcon = meta?.icon;
 
   const name =
     profile?.displayName?.split(" ")[0] ||
@@ -128,19 +147,34 @@ export function AppShell({
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[248px] flex-col border-r border-border bg-card lg:flex">
         <div className="flex h-16 items-center px-5">
-          <Link to="/dashboard" aria-label="PlantGuard AI home">
+          <Link to={homePath} aria-label="PlantGuard AI home">
             <PlantGuardLogo />
           </Link>
         </div>
 
-        <div className="mx-4 flex items-center gap-2 rounded-xl bg-accent px-3 py-2.5">
-          {isNursery ? (
+        <div
+          className={cn(
+            "mx-4 flex items-center gap-2 rounded-xl px-3 py-2.5",
+            !meta && "bg-accent",
+          )}
+          style={meta ? { backgroundColor: meta.accentSoft } : undefined}
+        >
+          {meta && RoleIcon ? (
+            <RoleIcon className="size-4" style={{ color: meta.accentDark }} />
+          ) : isNursery ? (
             <Flower2 className="size-4 text-primary" />
           ) : (
             <Sprout className="size-4 text-primary" />
           )}
-          <span className="text-xs font-semibold text-accent-foreground">
-            {isNursery ? "Nursery workspace" : t("shell.farmerWorkspace")}
+          <span
+            className="text-xs font-semibold text-accent-foreground"
+            style={meta ? { color: meta.accentDark } : undefined}
+          >
+            {meta
+              ? `${meta.label} workspace`
+              : isNursery
+                ? "Nursery workspace"
+                : t("shell.farmerWorkspace")}
           </span>
         </div>
 
@@ -223,7 +257,7 @@ export function AppShell({
 
       {/* Mobile top bar */}
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-card/90 px-4 backdrop-blur lg:hidden">
-        <Link to="/dashboard" aria-label="PlantGuard AI home">
+        <Link to={homePath} aria-label="PlantGuard AI home">
           <span className="inline-flex items-center gap-2">
             <PlantGuardMark className="size-8" />
             <span className="text-[15px] font-semibold tracking-[-0.01em]">
@@ -246,10 +280,10 @@ export function AppShell({
             <div className="mb-6">
               {showBack && (
                 <Link
-                  to="/dashboard"
+                  to={homePath}
                   className="mb-3 inline-flex items-center text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  ← Back to dashboard
+                  ← {backLabel}
                 </Link>
               )}
               {title && (

@@ -39,8 +39,25 @@ const FIRST_STAGE_DELAY = 220;
 
 export function PlantScanner({
   onSaved,
+  title,
+  subtitle,
+  stages = STAGES,
+  historyHref = "/history",
+  historyLabel,
+  resultHref,
 }: {
   onSaved?: (scanId: string) => void;
+  /** Overrides the entry heading (defaults to “Check Your Plant”). */
+  title?: string;
+  /** Overrides the entry supporting text. */
+  subtitle?: string;
+  /** Analysis stages shown while the model runs. */
+  stages?: string[];
+  /** Where history links point — role workspaces use their own route. */
+  historyHref?: string;
+  historyLabel?: string;
+  /** Where to go after saving a result. Return null to stay on the result. */
+  resultHref?: (scanId: string) => string | null;
 }) {
   const navigate = useNavigate();
   const { t } = useI18n();
@@ -94,7 +111,7 @@ export function PlantScanner({
     if (step !== "analyzing" || !file) return;
     let cancelled = false;
 
-    const timers = STAGES.map((_, index) =>
+    const timers = stages.map((_, index) =>
       window.setTimeout(
         () => setStageIndex(index + 1),
         FIRST_STAGE_DELAY + index * STEP_INTERVAL,
@@ -103,7 +120,7 @@ export function PlantScanner({
     timers.push(
       window.setTimeout(
         () => setStep("result"),
-        FIRST_STAGE_DELAY + STAGES.length * STEP_INTERVAL,
+        FIRST_STAGE_DELAY + stages.length * STEP_INTERVAL,
       ),
     );
 
@@ -132,7 +149,7 @@ export function PlantScanner({
       cancelled = true;
       timers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, [step, file, generateUploadUrl]);
+  }, [step, file, generateUploadUrl, stages]);
 
   function reset() {
     setStep("entry");
@@ -166,7 +183,8 @@ export function PlantScanner({
       setSaved(true);
       toast.success("Plant check saved to your history");
       onSaved?.(scanId);
-      navigate(`/scan/${scanId}`);
+      const target = (resultHref ?? ((id: string) => `/scan/${id}`))(scanId);
+      if (target) navigate(target);
     } catch {
       toast.error("Couldn't save this check. Please try again.");
       setSaving(false);
@@ -182,12 +200,11 @@ export function PlantScanner({
               <Camera className="size-7" />
             </span>
             <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-foreground">
-              {t("nav.checkYourPlant")}
+              {title ?? t("nav.checkYourPlant")}
             </h2>
             <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-              Take a clear photo or upload an existing plant image. Our AI model
-              looks at the leaf for visible disease patterns and gives you
-              guidance on what to do next.
+              {subtitle ??
+                "Take a clear photo or upload an existing plant image. Our AI model looks at the leaf for visible disease patterns and gives you guidance on what to do next."}
             </p>
 
             <div className="mt-6 flex flex-col gap-3">
@@ -235,9 +252,9 @@ export function PlantScanner({
             variant="ghost"
             className="h-11 rounded-xl text-[15px] font-medium text-muted-foreground"
           >
-            <Link to="/history">
+            <Link to={historyHref}>
               <Clock3 className="size-4" />
-              {t("nav.scanHistory")}
+              {historyLabel ?? t("nav.scanHistory")}
             </Link>
           </Button>
         </div>
@@ -314,7 +331,7 @@ export function PlantScanner({
             </p>
 
             <ul className="mt-5 flex flex-col gap-3" aria-live="polite">
-              {STAGES.map((stage, index) => {
+              {stages.map((stage, index) => {
                 const done = stageIndex > index;
                 const active = stageIndex === index;
                 return (
@@ -406,9 +423,9 @@ export function PlantScanner({
                     variant="outline"
                     className="h-12 flex-1 rounded-xl text-[15px] font-semibold"
                   >
-                    <Link to="/history">
+                    <Link to={historyHref}>
                       <Clock3 className="size-4" />
-                      {t("nav.history")}
+                      {historyLabel ?? t("nav.history")}
                     </Link>
                   </Button>
                 </div>

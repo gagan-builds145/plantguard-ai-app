@@ -58,13 +58,22 @@ export const createPost = mutation({
   },
 });
 
+export type FeedAuthorRole =
+  | "farmer"
+  | "nursery"
+  | "home_grower"
+  | "seller"
+  | "vehicle_owner"
+  | "labour"
+  | "scientist";
+
 export type FeedPost = {
   _id: Id<"posts">;
   caption: string;
   imageUrl: string | null;
   location: string | null;
   authorName: string;
-  authorRole: "farmer" | "nursery";
+  authorRole: FeedAuthorRole;
   likeCount: number;
   likedByMe: boolean;
   isMine: boolean;

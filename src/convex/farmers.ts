@@ -29,7 +29,17 @@ export const saveProfile = mutation({
     phone: v.optional(v.string()),
     language: v.optional(v.string()),
     onboardedAt: v.optional(v.number()),
-    role: v.optional(v.union(v.literal("farmer"), v.literal("nursery"))),
+    role: v.optional(
+      v.union(
+        v.literal("farmer"),
+        v.literal("nursery"),
+        v.literal("home_grower"),
+        v.literal("seller"),
+        v.literal("vehicle_owner"),
+        v.literal("labour"),
+        v.literal("scientist"),
+      ),
+    ),
     location: v.optional(
       v.object({
         country: v.string(),
@@ -44,6 +54,31 @@ export const saveProfile = mutation({
     nurseryCategories: v.optional(v.array(v.string())),
     nurseryScale: v.optional(v.string()),
     helpNeeded: v.optional(v.array(v.string())),
+    // Role setup fields for the Home Grower / Seller / Vehicle Owner / Labour /
+    // Scientist workspaces.
+    growerSpace: v.optional(v.string()),
+    growerInterests: v.optional(v.array(v.string())),
+    sellerBrandName: v.optional(v.string()),
+    sellerCategories: v.optional(v.array(v.string())),
+    institution: v.optional(v.string()),
+    department: v.optional(v.string()),
+    specialization: v.optional(v.string()),
+    yearsExperience: v.optional(v.string()),
+    researchInterests: v.optional(v.array(v.string())),
+    skills: v.optional(v.array(v.string())),
+    equipment: v.optional(v.array(v.string())),
+    experience: v.optional(v.string()),
+    serviceArea: v.optional(
+      v.object({
+        city: v.string(),
+        district: v.string(),
+        state: v.string(),
+        radius: v.string(),
+      }),
+    ),
+    availability: v.optional(v.string()),
+    usesVehicle: v.optional(v.boolean()),
+    vehicles: v.optional(v.array(v.any())),
     clearLocation: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -71,6 +106,22 @@ export const saveProfile = mutation({
         nurseryCategories: args.nurseryCategories,
         nurseryScale: args.nurseryScale,
         helpNeeded: args.helpNeeded ?? [],
+        growerSpace: args.growerSpace,
+        growerInterests: args.growerInterests,
+        sellerBrandName: args.sellerBrandName,
+        sellerCategories: args.sellerCategories,
+        institution: args.institution,
+        department: args.department,
+        specialization: args.specialization,
+        yearsExperience: args.yearsExperience,
+        researchInterests: args.researchInterests,
+        skills: args.skills,
+        equipment: args.equipment,
+        experience: args.experience,
+        serviceArea: args.serviceArea,
+        availability: args.availability,
+        usesVehicle: args.usesVehicle,
+        vehicles: args.vehicles,
         createdAt: Date.now(),
       });
     }
@@ -102,6 +153,46 @@ export const saveProfile = mutation({
       ...(args.helpNeeded !== undefined
         ? { helpNeeded: args.helpNeeded }
         : {}),
+      ...(args.growerSpace !== undefined
+        ? { growerSpace: args.growerSpace }
+        : {}),
+      ...(args.growerInterests !== undefined
+        ? { growerInterests: args.growerInterests }
+        : {}),
+      ...(args.sellerBrandName !== undefined
+        ? { sellerBrandName: args.sellerBrandName }
+        : {}),
+      ...(args.sellerCategories !== undefined
+        ? { sellerCategories: args.sellerCategories }
+        : {}),
+      ...(args.institution !== undefined
+        ? { institution: args.institution }
+        : {}),
+      ...(args.department !== undefined
+        ? { department: args.department }
+        : {}),
+      ...(args.specialization !== undefined
+        ? { specialization: args.specialization }
+        : {}),
+      ...(args.yearsExperience !== undefined
+        ? { yearsExperience: args.yearsExperience }
+        : {}),
+      ...(args.researchInterests !== undefined
+        ? { researchInterests: args.researchInterests }
+        : {}),
+      ...(args.skills !== undefined ? { skills: args.skills } : {}),
+      ...(args.equipment !== undefined ? { equipment: args.equipment } : {}),
+      ...(args.experience !== undefined ? { experience: args.experience } : {}),
+      ...(args.serviceArea !== undefined
+        ? { serviceArea: args.serviceArea }
+        : {}),
+      ...(args.availability !== undefined
+        ? { availability: args.availability }
+        : {}),
+      ...(args.usesVehicle !== undefined
+        ? { usesVehicle: args.usesVehicle }
+        : {}),
+      ...(args.vehicles !== undefined ? { vehicles: args.vehicles } : {}),
       ...(args.location !== undefined ? { location: args.location } : {}),
       ...(args.clearLocation ? { location: undefined } : {}),
     });

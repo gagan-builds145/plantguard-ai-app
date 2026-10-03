@@ -40,7 +40,17 @@ const schema = defineSchema(
       language: v.optional(v.string()),
       onboardedAt: v.optional(v.number()),
       // Workspace role. Defaults to "farmer" when unset (existing accounts).
-      role: v.optional(v.union(v.literal("farmer"), v.literal("nursery"))),
+      role: v.optional(
+        v.union(
+          v.literal("farmer"),
+          v.literal("nursery"),
+          v.literal("home_grower"),
+          v.literal("seller"),
+          v.literal("vehicle_owner"),
+          v.literal("labour"),
+          v.literal("scientist"),
+        ),
+      ),
       location: v.optional(
         v.object({
           country: v.string(),
@@ -57,6 +67,31 @@ const schema = defineSchema(
       nurseryCategories: v.optional(v.array(v.string())),
       nurseryScale: v.optional(v.string()),
       helpNeeded: v.array(v.string()),
+      // Fields collected by the Home Grower / Seller / Vehicle Owner / Labour /
+      // Scientist setup flows. Optional so existing profiles stay valid.
+      growerSpace: v.optional(v.string()),
+      growerInterests: v.optional(v.array(v.string())),
+      sellerBrandName: v.optional(v.string()),
+      sellerCategories: v.optional(v.array(v.string())),
+      institution: v.optional(v.string()),
+      department: v.optional(v.string()),
+      specialization: v.optional(v.string()),
+      yearsExperience: v.optional(v.string()),
+      researchInterests: v.optional(v.array(v.string())),
+      skills: v.optional(v.array(v.string())),
+      equipment: v.optional(v.array(v.string())),
+      experience: v.optional(v.string()),
+      serviceArea: v.optional(
+        v.object({
+          city: v.string(),
+          district: v.string(),
+          state: v.string(),
+          radius: v.string(),
+        }),
+      ),
+      availability: v.optional(v.string()),
+      usesVehicle: v.optional(v.boolean()),
+      vehicles: v.optional(v.array(v.any())),
       createdAt: v.number(),
     }).index("by_user", ["userId"]),
 
@@ -87,7 +122,15 @@ const schema = defineSchema(
       imageId: v.id("_storage"),
       location: v.optional(v.string()),
       authorName: v.string(),
-      authorRole: v.union(v.literal("farmer"), v.literal("nursery")),
+      authorRole: v.union(
+        v.literal("farmer"),
+        v.literal("nursery"),
+        v.literal("home_grower"),
+        v.literal("seller"),
+        v.literal("vehicle_owner"),
+        v.literal("labour"),
+        v.literal("scientist"),
+      ),
       likedBy: v.array(v.id("users")),
       createdAt: v.number(),
     })
