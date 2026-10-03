@@ -11,8 +11,22 @@ import {
   type PillTone,
 } from "@/components/role-ui";
 import { Button } from "@/components/ui/button";
-import { SCIENTIST_DATASETS } from "@/lib/role-data";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useLocalState } from "@/hooks/use-local-state";
+import { SCIENTIST_DATASETS, type Dataset } from "@/lib/role-data";
+import { downloadCsv } from "@/lib/csv";
 import { Database, Download, HardDrive, Plus, RefreshCw } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const ACCENT = "#5E35B1";
 
@@ -23,11 +37,42 @@ const STATUS_TONE: Record<string, PillTone> = {
 };
 
 export function ScientistDatasets() {
-  const totalImages = SCIENTIST_DATASETS.reduce((sum, item) => sum + item.images, 0);
-  const totalDiseases = SCIENTIST_DATASETS.reduce(
+  const [created, setCreated] = useLocalState<Dataset[]>(
+    "scientist:created-datasets",
+    [],
+  );
+  const [createOpen, setCreateOpen] = useState(false);
+  const [draft, setDraft] = useState({ name: "", plants: "", diseases: "" });
+
+  const datasets = [...created, ...SCIENTIST_DATASETS];
+
+  const totalImages = datasets.reduce((sum, item) => sum + item.images, 0);
+  const totalDiseases = datasets.reduce(
     (sum, item) => sum + item.diseases.split(",").length,
     0,
   );
+
+  const createDataset = () => {
+    if (!draft.name.trim() || !draft.plants.trim()) {
+      toast.error("A dataset needs a name and at least one plant.");
+      return;
+    }
+    setCreated((prev) => [
+      {
+        id: `ds-${Date.now()}`,
+        name: draft.name.trim(),
+        images: 0,
+        plants: draft.plants.trim(),
+        diseases: draft.diseases.trim() || "Unlabelled",
+        updated: "Just now",
+        status: "Processing" as const,
+      },
+      ...prev,
+    ]);
+    setDraft({ name: "", plants: "", diseases: "" });
+    setCreateOpen(false);
+    toast.success("Dataset created — it starts processing now.");
+  };
 
   return (
     <RolePage
@@ -36,7 +81,11 @@ export function ScientistDatasets() {
       title="Datasets"
       subtitle="Curate the image collections your models train and validate on."
       action={
-        <Button className="h-11 gap-2 rounded-xl" style={{ backgroundColor: ACCENT }}>
+        <Button
+          className="h-11 gap-2 rounded-xl"
+          style={{ backgroundColor: ACCENT }}
+          onClick={() => setCreateOpen(true)}
+        >
           <Plus className="size-4" />
           New dataset
         </Button>
@@ -87,7 +136,7 @@ export function ScientistDatasets() {
           </tr>
         </thead>
         <tbody>
-          {SCIENTIST_DATASETS.map((item) => (
+          {datasets.map((item) => (
             <tr key={item.id} className="transition-colors hover:bg-surface-2">
               <Td className="font-semibold text-foreground">{item.name}</Td>
               <Td>{item.images.toLocaleString("en-IN")}</Td>
@@ -103,7 +152,7 @@ export function ScientistDatasets() {
       </TableShell>
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 md:hidden">
-        {SCIENTIST_DATASETS.map((item) => (
+        {datasets.map((item) => (
           <Panel key={item.id} className="flex flex-col gap-3">
             <div className="flex items-start justify-between gap-2">
               <p className="text-sm font-semibold text-foreground">{item.name}</p>
@@ -151,11 +200,92 @@ export function ScientistDatasets() {
             </div>
           ))}
         </div>
-        <Button variant="outline" className="mt-4 h-11 gap-2 rounded-xl" type="button">
+        <Button
+          variant="outline"
+          className="mt-4 h-11 gap-2 rounded-xl"
+          onClick={() => {
+            downloadCsv(
+              "plantguard-dataset-manifest",
+              ["Dataset", "Images", "Plants", "Disease classes", "Updated", "Status"],
+              datasets.map((item) => [
+                item.name,
+                item.images,
+                item.plants,
+                item.diseases,
+                item.updated,
+                item.status,
+              ]),
+            );
+            toast.success(`Manifest exported for ${datasets.length} datasets`);
+          }}
+        >
           <Download className="size-4" />
           Export dataset manifest
         </Button>
       </Panel>
+
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle>New dataset</DialogTitle>
+            <DialogDescription>
+              Describe the collection now — you can upload labelled images from the
+              analysis workspace afterwards.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-1">
+            <label className="flex flex-col gap-1.5">
+              <Label className="text-[13px] font-medium">Dataset name</Label>
+              <Input
+                value={draft.name}
+                onChange={(event) =>
+                  setDraft((prev) => ({ ...prev, name: event.target.value }))
+                }
+                placeholder="e.g. Brinjal Leaf Health v1"
+                className="h-11 rounded-xl"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <Label className="text-[13px] font-medium">Plants covered</Label>
+              <Input
+                value={draft.plants}
+                onChange={(event) =>
+                  setDraft((prev) => ({ ...prev, plants: event.target.value }))
+                }
+                placeholder="Brinjal, Tomato"
+                className="h-11 rounded-xl"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5">
+              <Label className="text-[13px] font-medium">Disease classes (optional)</Label>
+              <Input
+                value={draft.diseases}
+                onChange={(event) =>
+                  setDraft((prev) => ({ ...prev, diseases: event.target.value }))
+                }
+                placeholder="Little leaf, Wilt, Healthy"
+                className="h-11 rounded-xl"
+              />
+            </label>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button
+              variant="outline"
+              className="h-11 rounded-xl"
+              onClick={() => setCreateOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="h-11 rounded-xl"
+              style={{ backgroundColor: ACCENT }}
+              onClick={createDataset}
+            >
+              Create dataset
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </RolePage>
   );
 }

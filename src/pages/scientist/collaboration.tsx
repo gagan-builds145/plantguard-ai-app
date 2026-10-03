@@ -7,16 +7,26 @@ import {
   StatusPill,
 } from "@/components/role-ui";
 import { Button } from "@/components/ui/button";
+import { InviteDialog } from "@/components/role-dialogs";
 import {
   SCIENTIST_COLLABORATORS,
   SCIENTIST_SHARED_ANALYSES,
   SCIENTIST_SHARED_DATASETS,
 } from "@/lib/role-data";
 import { Database, Mail, Share2, Users } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const ACCENT = "#5E35B1";
 
 export function ScientistCollaboration() {
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [messageFor, setMessageFor] = useState<{
+    name: string;
+    role: string;
+  } | null>(null);
+  const [messageOpen, setMessageOpen] = useState(false);
+
   return (
     <RolePage
       role="scientist"
@@ -24,7 +34,11 @@ export function ScientistCollaboration() {
       title="Collaboration"
       subtitle="Work with pathologists, agronomists and dataset owners across institutions."
       action={
-        <Button className="h-11 gap-2 rounded-xl" style={{ backgroundColor: ACCENT }}>
+        <Button
+          className="h-11 gap-2 rounded-xl"
+          style={{ backgroundColor: ACCENT }}
+          onClick={() => setInviteOpen(true)}
+        >
           <Mail className="size-4" />
           Invite researcher
         </Button>
@@ -86,7 +100,15 @@ export function ScientistCollaboration() {
                   <StatusPill label={`${person.shared} shared`} tone="gray" />
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="h-10 shrink-0 gap-2 rounded-xl">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 shrink-0 gap-2 rounded-xl"
+                onClick={() => {
+                  setMessageFor({ name: person.name, role: person.role });
+                  setMessageOpen(true);
+                }}
+              >
                 <Mail className="size-3.5" />
                 Message
               </Button>
@@ -115,7 +137,14 @@ export function ScientistCollaboration() {
                 </div>
                 <div className="flex items-center gap-2">
                   <StatusPill label={`${item.items} items`} tone="blue" />
-                  <Button variant="ghost" size="sm" className="h-9 rounded-lg text-[13px]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 rounded-lg text-[13px]"
+                    onClick={() =>
+                      toast.success(`Request opened for “${item.title}”`)
+                    }
+                  >
                     Open
                   </Button>
                 </div>
@@ -146,7 +175,14 @@ export function ScientistCollaboration() {
                     label={`${item.images.toLocaleString("en-IN")} images`}
                     tone="green"
                   />
-                  <Button variant="ghost" size="sm" className="h-9 rounded-lg text-[13px]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 rounded-lg text-[13px]"
+                    onClick={() =>
+                      toast.success(`Access requested for “${item.name}”`)
+                    }
+                  >
                     Request access
                   </Button>
                 </div>
@@ -186,6 +222,24 @@ export function ScientistCollaboration() {
           ))}
         </div>
       </Panel>
+
+      <InviteDialog
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+        title="Invite a researcher"
+        description="They'll get access to the projects and datasets you share with them."
+        accent={ACCENT}
+        actionLabel="Send invite"
+      />
+
+      <InviteDialog
+        open={messageOpen}
+        onOpenChange={setMessageOpen}
+        title={`Message ${messageFor?.name ?? ""}`}
+        description={`${messageFor?.role ?? "Collaborator"} · send a note about a shared analysis.`}
+        accent={ACCENT}
+        actionLabel="Send message"
+      />
     </RolePage>
   );
 }

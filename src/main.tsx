@@ -36,6 +36,7 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 // Role workspaces (Home Grower, Seller, Vehicle Owner, Labour, Scientist)
 const RoleStart = lazy(() => import("./pages/RoleStart.tsx"));
 const RoleSetup = lazy(() => import("./pages/RoleSetup.tsx"));
+const SharedFeed = lazy(() => import("./pages/SharedFeed.tsx"));
 
 const GrowerHome = lazy(() => import("./pages/grower/home.tsx"));
 const GrowerDiscover = lazy(() => import("./pages/grower/discover.tsx"));
@@ -247,6 +248,14 @@ createRoot(document.getElementById("root")!).render(
                   </RequireAuth>
                 }
               />
+              <Route
+                path="/community"
+                element={
+                  <RequireAuth redirectImmediately>
+                    <SharedFeed />
+                  </RequireAuth>
+                }
+              />
 
               {/* Home Grower */}
               <Route path="/grower" element={<RequireAuth redirectImmediately><GrowerHome /></RequireAuth>} />
@@ -281,6 +290,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/vehicle/active" element={<RequireAuth redirectImmediately><VehicleActiveService /></RequireAuth>} />
               <Route path="/vehicle/history" element={<RequireAuth redirectImmediately><VehicleHistoryPage /></RequireAuth>} />
               <Route path="/vehicle/vehicles" element={<RequireAuth redirectImmediately><VehicleFleet /></RequireAuth>} />
+              <Route path="/vehicle/vehicles/new" element={<RequireAuth redirectImmediately><VehicleDetailsPage /></RequireAuth>} />
               <Route path="/vehicle/vehicles/:id" element={<RequireAuth redirectImmediately><VehicleDetailsPage /></RequireAuth>} />
               <Route path="/vehicle/insurance" element={<RequireAuth redirectImmediately><VehicleInsurancePage /></RequireAuth>} />
               <Route path="/vehicle/profile" element={<RequireAuth redirectImmediately><VehicleProfilePage /></RequireAuth>} />

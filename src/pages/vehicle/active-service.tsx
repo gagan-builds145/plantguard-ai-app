@@ -17,6 +17,7 @@ import {
   type ServiceRequest,
 } from "@/lib/role-data";
 import { CalendarClock, CheckCircle2, MapPin, Navigation, Phone, Truck } from "lucide-react";
+import { callContact, openDirections } from "@/lib/actions";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
@@ -133,11 +134,19 @@ export function VehicleActiveService() {
               ]}
             />
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" className="h-11 flex-1 gap-2 rounded-xl">
+              <Button
+                variant="outline"
+                className="h-11 flex-1 gap-2 rounded-xl"
+                onClick={() => openDirections(request.location)}
+              >
                 <Navigation className="size-4" />
                 Start navigation
               </Button>
-              <Button variant="ghost" className="h-11 flex-1 gap-2 rounded-xl">
+              <Button
+                variant="ghost"
+                className="h-11 flex-1 gap-2 rounded-xl"
+                onClick={() => callContact(request.requester)}
+              >
                 <Phone className="size-4" />
                 Call requester
               </Button>

@@ -1,6 +1,7 @@
 import { PlantGuardLogo } from "@/components/brand";
 import { Button } from "@/components/ui/button";
-import { NEW_ROLES, ROLE_META } from "@/lib/roles";
+import { RoleGrid, type ChooserRole } from "@/components/role-chooser";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import {
@@ -22,9 +23,7 @@ import {
   Users,
   Wheat,
 } from "lucide-react";
-import { Link } from "react-router";
-
-const ROLE_META_LIST = NEW_ROLES.map((id) => ROLE_META[id]);
+import { Link, useNavigate } from "react-router";
 
 const fadeUp = {
   initial: { opacity: 0, y: 16 },
@@ -156,6 +155,18 @@ const WORKSPACES = [
 ];
 
 export default function Landing() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  /** Signed-in users go straight to that role's setup; everyone else signs in first. */
+  function startRole(role: ChooserRole) {
+    navigate(
+      isAuthenticated
+        ? role.setupTo
+        : `/auth?mode=signup&returnTo=${encodeURIComponent(role.setupTo)}`,
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -508,61 +519,9 @@ export default function Landing() {
             </p>
           </motion.div>
 
-          <ul className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {ROLE_META_LIST.map((item) => (
-              <motion.li key={item.id} {...fadeUp}>
-                <Link
-                  to="/start"
-                  className="group flex h-full flex-col gap-3 rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span
-                      className="flex size-11 items-center justify-center rounded-xl"
-                      style={{ backgroundColor: item.accentSoft, color: item.accentDark }}
-                    >
-                      <item.icon className="size-5" />
-                    </span>
-                    <span className="text-2xl" aria-hidden>
-                      {item.emoji}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-[16px] font-semibold text-foreground">{item.label}</p>
-                    <p className="mt-1 text-[13px] font-medium text-muted-foreground">
-                      {item.tagline}
-                    </p>
-                  </div>
-                  <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[13px] font-semibold text-primary">
-                    Set up {item.short}
-                    <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </span>
-                </Link>
-              </motion.li>
-            ))}
+          <ul className="mt-9">
             <motion.li {...fadeUp}>
-              <Link
-                to="/onboarding"
-                className="group flex h-full flex-col gap-3 rounded-2xl border border-dashed border-border bg-card p-5 transition-colors hover:border-primary/40"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="flex size-11 items-center justify-center rounded-xl bg-[#E8F5E9] text-primary">
-                    <Wheat className="size-5" />
-                  </span>
-                  <span className="text-2xl" aria-hidden>
-                    🌾
-                  </span>
-                </div>
-                <div>
-                  <p className="text-[16px] font-semibold text-foreground">Farmer &amp; Nursery</p>
-                  <p className="mt-1 text-[13px] font-medium text-muted-foreground">
-                    Fields, crops, stock and the original farm dashboard.
-                  </p>
-                </div>
-                <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[13px] font-semibold text-primary">
-                  Set up farm workspace
-                  <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </Link>
+              <RoleGrid onSelect={startRole} />
             </motion.li>
           </ul>
 

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useLocalState } from "@/hooks/use-local-state";
 import { LABOUR_JOBS, LABOUR_UPCOMING, type LabourJob } from "@/lib/role-data";
 import { CalendarClock, CheckCircle2, Clock, MapPin, Navigation, Sprout } from "lucide-react";
+import { openDirections } from "@/lib/actions";
 import { Link } from "react-router";
 import { toast } from "sonner";
 
@@ -127,7 +128,11 @@ export function LabourActiveWork() {
                 { id: job.id, x: 70, y: 28, label: job.location, tone: "destination" },
               ]}
             />
-            <Button variant="outline" className="h-11 w-full gap-2 rounded-xl">
+            <Button
+              variant="outline"
+              className="h-11 w-full gap-2 rounded-xl"
+              onClick={() => openDirections(job.location)}
+            >
               <Navigation className="size-4" />
               Start navigation
             </Button>

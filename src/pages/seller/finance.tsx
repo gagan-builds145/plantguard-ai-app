@@ -9,6 +9,7 @@ import {
 } from "@/components/role-ui";
 import { Button } from "@/components/ui/button";
 import { SELLER_FINANCE } from "@/lib/role-data";
+import { EligibilityDialog } from "@/components/role-dialogs";
 import {
   ArrowRight,
   Banknote,
@@ -20,6 +21,7 @@ import {
   Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useState } from "react";
 
 const ICONS: Record<string, LucideIcon> = {
   loans: Landmark,
@@ -36,6 +38,16 @@ const SUMMARY = [
 ];
 
 export function SellerBusinessFinance() {
+  const [checkOpen, setCheckOpen] = useState(false);
+  const [checkKey, setCheckKey] = useState(SELLER_FINANCE[0].key);
+  const [checkTitle, setCheckTitle] = useState(SELLER_FINANCE[0].title);
+
+  const openCheck = (key: string, title: string) => {
+    setCheckKey(key);
+    setCheckTitle(title);
+    setCheckOpen(true);
+  };
+
   return (
     <RolePage
       role="seller"
@@ -110,7 +122,11 @@ export function SellerBusinessFinance() {
                     </li>
                   ))}
                 </ul>
-                <Button variant="outline" className="mt-1 h-11 w-full gap-2 rounded-xl">
+                <Button
+                  variant="outline"
+                  className="mt-1 h-11 w-full gap-2 rounded-xl"
+                  onClick={() => openCheck(item.key, item.title)}
+                >
                   Check eligibility
                   <ArrowRight className="size-4" />
                 </Button>
@@ -149,6 +165,14 @@ export function SellerBusinessFinance() {
           </InfoNote>
         </div>
       </Panel>
+
+      <EligibilityDialog
+        open={checkOpen}
+        onOpenChange={setCheckOpen}
+        productKey={checkKey}
+        title={checkTitle}
+        accent="#00897B"
+      />
     </RolePage>
   );
 }

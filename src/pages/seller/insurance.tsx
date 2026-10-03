@@ -10,6 +10,7 @@ import {
 } from "@/components/role-ui";
 import { Button } from "@/components/ui/button";
 import { SELLER_INSURANCE } from "@/lib/role-data";
+import { CoverDialog } from "@/components/role-dialogs";
 import {
   ArrowRight,
   Boxes,
@@ -20,6 +21,7 @@ import {
   Warehouse,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useState } from "react";
 
 const ICONS: Record<string, LucideIcon> = {
   business: Warehouse,
@@ -35,6 +37,16 @@ const POLICIES = [
 ];
 
 export function SellerBusinessInsurance() {
+  const [coverOpen, setCoverOpen] = useState(false);
+  const [activeCover, setActiveCover] = useState<(typeof SELLER_INSURANCE)[number] | null>(
+    null,
+  );
+
+  const openCover = (cover: (typeof SELLER_INSURANCE)[number]) => {
+    setActiveCover(cover);
+    setCoverOpen(true);
+  };
+
   return (
     <RolePage
       role="seller"
@@ -115,7 +127,11 @@ export function SellerBusinessInsurance() {
                     </li>
                   ))}
                 </ul>
-                <Button variant="outline" className="mt-1 h-11 w-full gap-2 rounded-xl">
+                <Button
+                  variant="outline"
+                  className="mt-1 h-11 w-full gap-2 rounded-xl"
+                  onClick={() => openCover(item)}
+                >
                   Explore cover
                   <ArrowRight className="size-4" />
                 </Button>
@@ -156,6 +172,13 @@ export function SellerBusinessInsurance() {
           </InfoNote>
         </div>
       </Panel>
+
+      <CoverDialog
+        open={coverOpen}
+        onOpenChange={setCoverOpen}
+        cover={activeCover}
+        accent="#00897B"
+      />
     </RolePage>
   );
 }

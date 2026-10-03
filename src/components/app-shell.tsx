@@ -46,6 +46,7 @@ const SECONDARY_NAV: NavItem[] = [
 
 const FARMER_MOBILE_NAV: NavItem[] = [
   { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
+  { key: "feed", label: "Feed", to: "/community", icon: ImageIcon },
   { key: "services", labelKey: "nav.services", to: "/services", icon: Sprout },
   { key: "scan", labelKey: "nav.scan", to: "/scan", icon: ScanLine, emphasized: true },
   { key: "history", labelKey: "nav.history", to: "/history", icon: History },
@@ -64,6 +65,7 @@ const NURSERY_MOBILE_NAV: NavItem[] = [
 /** Desktop sidebar navigation */
 const FARMER_DESKTOP_NAV: NavItem[] = [
   { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
+  { key: "feed", label: "Community Feed", to: "/community", icon: ImageIcon },
   { key: "scan", labelKey: "nav.checkYourPlant", to: "/scan", icon: ScanLine },
   { key: "services", labelKey: "nav.farmServices", to: "/services", icon: Sprout },
   { key: "crops", labelKey: "nav.crops", to: "/crops", icon: Wheat },
@@ -307,7 +309,12 @@ export function AppShell({
         aria-label="Primary"
         className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
       >
-        <ul className="mx-auto grid h-[72px] max-w-lg grid-cols-5">
+        <ul
+          className="mx-auto grid h-[72px] max-w-lg"
+          style={{
+            gridTemplateColumns: `repeat(${Math.max(5, mobileNav.length)}, minmax(0, 1fr))`,
+          }}
+        >
           {mobileNav.map((item) => {
             const isCurrent = active === item.key;
             const Icon = item.icon;

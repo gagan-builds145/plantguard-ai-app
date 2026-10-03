@@ -16,6 +16,7 @@ import { useFarmerProfile } from "@/hooks/use-farmer";
 import { LABOUR_JOBS, SERVICE_RADIUS_OPTIONS } from "@/lib/role-data";
 import { useMutation } from "convex/react";
 import { Loader2, MapPin, Navigation, Save } from "lucide-react";
+import { useCurrentLocation } from "@/lib/actions";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -29,6 +30,7 @@ export function LabourServiceArea() {
   const [district, setDistrict] = useState("Bengaluru Urban");
   const [state, setState] = useState("Karnataka");
   const [saving, setSaving] = useState(false);
+  const [coords, setCoords] = useState("");
 
   useEffect(() => {
     const area = profile?.serviceArea;
@@ -161,11 +163,25 @@ export function LabourServiceArea() {
           <Button
             variant="outline"
             className="mt-4 h-11 w-full gap-2 rounded-xl"
-            type="button"
+            onClick={() =>
+              useCurrentLocation(
+                ({ latitude, longitude }) => {
+                  setCoords(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+                  toast.success("Location captured — check the area name and save.");
+                },
+                () => setCoords(""),
+              )
+            }
           >
             <Navigation className="size-4" />
-            Use my current location
+            {coords ? "Update my location" : "Use my current location"}
           </Button>
+          {coords ? (
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <MapPin className="size-3.5" />
+              Captured {coords}
+            </p>
+          ) : null}
         </Panel>
       </div>
     </RolePage>

@@ -10,6 +10,7 @@ import {
 } from "@/components/role-ui";
 import { Button } from "@/components/ui/button";
 import { LABOUR_INSURANCE } from "@/lib/role-data";
+import { CoverDialog } from "@/components/role-dialogs";
 import {
   ArrowRight,
   FileCheck2,
@@ -18,6 +19,7 @@ import {
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useState } from "react";
 
 const ACCENT = "#EF6C00";
 const ICONS: Record<string, LucideIcon> = {
@@ -32,6 +34,16 @@ const POLICIES = [
 ];
 
 export function LabourInsurance() {
+  const [coverOpen, setCoverOpen] = useState(false);
+  const [activeCover, setActiveCover] = useState<
+    (typeof LABOUR_INSURANCE)[number] | null
+  >(null);
+
+  const openCover = (cover: (typeof LABOUR_INSURANCE)[number]) => {
+    setActiveCover(cover);
+    setCoverOpen(true);
+  };
+
   return (
     <RolePage
       role="labour"
@@ -117,7 +129,11 @@ export function LabourInsurance() {
                     </li>
                   ))}
                 </ul>
-                <Button variant="outline" className="mt-1 h-11 w-full gap-2 rounded-xl">
+                <Button
+                  variant="outline"
+                  className="mt-1 h-11 w-full gap-2 rounded-xl"
+                  onClick={() => openCover(item)}
+                >
                   Explore cover
                   <ArrowRight className="size-4" />
                 </Button>
@@ -155,6 +171,13 @@ export function LabourInsurance() {
           </InfoNote>
         </div>
       </Panel>
+
+      <CoverDialog
+        open={coverOpen}
+        onOpenChange={setCoverOpen}
+        cover={activeCover}
+        accent="#EF6C00"
+      />
     </RolePage>
   );
 }

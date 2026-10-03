@@ -7,6 +7,7 @@ import {
   StatTile,
   StatusPill,
 } from "@/components/role-ui";
+import { ResourceDialog } from "@/components/role-dialogs";
 import { Button } from "@/components/ui/button";
 import { useLocalState } from "@/hooks/use-local-state";
 import {
@@ -35,6 +36,8 @@ export function ScientistLibrary() {
     "scientist:saved-resources",
     SCIENTIST_LIBRARY.filter((item) => item.saved).map((item) => item.id),
   );
+  const [resourceOpen, setResourceOpen] = useState(false);
+  const [openResource, setOpenResource] = useState<LibraryResource | null>(null);
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -169,7 +172,15 @@ export function ScientistLibrary() {
                   <Bookmark className="size-3.5" />
                   {isSaved ? "Saved" : "Save"}
                 </Button>
-                <Button variant="ghost" size="sm" className="h-10 gap-2 rounded-xl">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-10 gap-2 rounded-xl"
+                  onClick={() => {
+                    setOpenResource(item);
+                    setResourceOpen(true);
+                  }}
+                >
                   <ExternalLink className="size-3.5" />
                   Open
                 </Button>
@@ -178,6 +189,13 @@ export function ScientistLibrary() {
           );
         })}
       </div>
+
+      <ResourceDialog
+        open={resourceOpen}
+        onOpenChange={setResourceOpen}
+        resource={openResource}
+        accent={ACCENT}
+      />
 
       {visible.length === 0 ? (
         <Panel className="py-10 text-center">

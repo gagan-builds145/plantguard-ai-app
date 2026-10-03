@@ -1,19 +1,20 @@
 import { PlantGuardLogo } from "@/components/brand";
+import { RoleChooser, getChooserRole } from "@/components/role-chooser";
 import { Button } from "@/components/ui/button";
 import { useFarmerProfile } from "@/hooks/use-farmer";
-import { NEW_ROLES, ROLE_META, roleHomePath } from "@/lib/roles";
-import { ArrowRight, Check, Sprout } from "lucide-react";
+import { roleHomePath } from "@/lib/roles";
+import { Sprout } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 
 /**
- * Role picker for the five new PlantGuard experiences. Each card explains what
- * the role can do, and setup continues in the shared role wizard.
+ * One role block for every role — Farmer and Nursery sit in the same list as
+ * Home Grower, Seller, Vehicle Owner, Labour and Scientist. Each card routes to
+ * that role's own setup flow.
  */
 export function RoleStart() {
   const navigate = useNavigate();
   const { profile } = useFarmerProfile();
-  const current = profile?.role;
-  const isNew = NEW_ROLES.includes(current as (typeof NEW_ROLES)[number]);
+  const current = getChooserRole(profile?.role);
 
   return (
     <div className="min-h-screen bg-[#F6FAF6]">
@@ -37,92 +38,46 @@ export function RoleStart() {
             Choose your workspace
           </span>
           <h1 className="mt-4 text-[30px] font-bold leading-tight tracking-[-0.02em] text-foreground sm:text-[40px]">
-            PlantGuard AI works differently for everyone
+            Every PlantGuard role, in one place
           </h1>
           <p className="mt-3 text-[15px] leading-7 text-muted-foreground">
-            Pick the role closest to what you do. You can change it later, and each
-            workspace keeps its own navigation, tools and language.
+            All seven roles live in this single list. Pick the one closest to what you
+            do — you can switch later and your saved work stays with your account.
           </p>
         </div>
 
-        <ul className="mt-8 grid gap-3 sm:grid-cols-2">
-          {NEW_ROLES.map((id) => {
-            const meta = ROLE_META[id];
-            const Icon = meta.icon;
-            const selected = current === id;
-            return (
-              <li key={id}>
-                <button
-                  type="button"
-                  onClick={() => navigate(`/setup/${id}`)}
-                  className="group flex h-full w-full flex-col gap-3 rounded-2xl border border-[#E6EFE6] bg-white p-5 text-left shadow-[0_1px_3px_rgba(20,40,20,0.06)] transition-colors hover:border-[#2E7D32]/40"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <span
-                      className="flex size-11 items-center justify-center rounded-xl"
-                      style={{ backgroundColor: meta.accentSoft, color: meta.accentDark }}
-                    >
-                      <Icon className="size-5" />
-                    </span>
-                    <span className="text-2xl" aria-hidden>
-                      {meta.emoji}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-[16px] font-semibold text-foreground">
-                      {meta.label}
-                    </p>
-                    <p className="mt-1 text-[13px] font-medium text-muted-foreground">
-                      {meta.tagline}
-                    </p>
-                    <p className="mt-2 text-[13px] leading-6 text-muted-foreground">
-                      {meta.description}
-                    </p>
-                  </div>
-                  <span
-                    className="mt-auto inline-flex items-center gap-1.5 pt-2 text-[13px] font-semibold"
-                    style={{ color: meta.accentDark }}
-                  >
-                    {selected ? (
-                      <>
-                        <Check className="size-3.5" />
-                        Continue setup
-                      </>
-                    ) : (
-                      <>
-                        Set up {meta.short}
-                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-                      </>
-                    )}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-
-        <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-[#E6EFE6] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold text-foreground">
-              Are you a farmer or nursery owner?
-            </p>
-            <p className="mt-1 text-[13px] text-muted-foreground">
-              {isNew
-                ? `You're currently set up as ${ROLE_META[current as "home_grower"].label}. Re-run the farmer or nursery setup to switch workspaces.`
-                : "Use the original setup flow for farm and nursery fields, crops and stock."}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button asChild variant="outline" className="h-11 gap-2 rounded-xl">
-              <Link to="/onboarding">Farmer / nursery setup</Link>
-            </Button>
-            {isNew ? (
-              <Button asChild className="h-11 gap-2 rounded-xl">
-                <Link to={roleHomePath(current)}>Go to my workspace</Link>
-              </Button>
-            ) : null}
-          </div>
+        <div className="mt-8">
+          <RoleChooser
+            value={current?.id}
+            columns="sm:grid-cols-2 xl:grid-cols-3"
+            onSelect={(role) => navigate(role.setupTo)}
+          />
         </div>
+
+        {current ? (
+          <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-[#E6EFE6] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                You&apos;re currently set up as {current.label}
+              </p>
+              <p className="mt-1 text-[13px] text-muted-foreground">
+                Switch roles any time — your profile, scans and saved items stay put.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button asChild className="h-11 gap-2 rounded-xl">
+                <Link to={roleHomePath(profile?.role)}>Go to my workspace</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="h-11 gap-2 rounded-xl"
+              >
+                <Link to="/dashboard">Dashboard</Link>
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </main>
     </div>
   );

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocalState } from "@/hooks/use-local-state";
+import { downloadCsv } from "@/lib/csv";
 import {
   SCIENTIST_AI_DISCLAIMER,
   SCIENTIST_SPECIALIZATIONS,
@@ -127,7 +128,22 @@ export function ScientistAnalyze() {
                 <Save className="size-4" />
                 Save to project
               </Button>
-              <Button variant="outline" className="h-11 flex-1 gap-2 rounded-xl" type="button">
+              <Button
+                variant="outline"
+                className="h-11 flex-1 gap-2 rounded-xl"
+                onClick={() => {
+                  if (!labels.length) {
+                    toast.error("Select a verified label before exporting.");
+                    return;
+                  }
+                  downloadCsv(
+                    "plantguard-annotation",
+                    ["Verified labels", "Specialization", "Notes"],
+                    [[labels.join(" / "), specialization, notes || "—"]],
+                  );
+                  toast.success("Annotation exported");
+                }}
+              >
                 <Download className="size-4" />
                 Export
               </Button>

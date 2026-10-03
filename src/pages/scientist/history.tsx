@@ -21,6 +21,8 @@ import {
 import { Download, FlaskConical, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
+import { downloadCsv } from "@/lib/csv";
+import { toast } from "sonner";
 
 const ACCENT = "#5E35B1";
 const FILTERS = ["All", "Healthy", "Needs review", "Flagged"] as const;
@@ -65,7 +67,28 @@ export function ScientistHistory() {
       title="Analysis History"
       subtitle="Every image you have analysed, with the model reading, confidence and project."
       action={
-        <Button variant="outline" className="h-11 gap-2 rounded-xl" type="button">
+        <Button
+          variant="outline"
+          className="h-11 gap-2 rounded-xl"
+          onClick={() => {
+            if (!visible.length) {
+              toast.error("Nothing to export in this view.");
+              return;
+            }
+            downloadCsv(
+              "plantguard-analyses",
+              ["Plant", "Model reading", "Confidence", "Project", "Date"],
+              visible.map((item) => [
+                item.plant,
+                item.result,
+                `${item.confidence}%`,
+                item.project,
+                item.date,
+              ]),
+            );
+            toast.success(`Exported ${visible.length} analyses`);
+          }}
+        >
           <Download className="size-4" />
           Export CSV
         </Button>

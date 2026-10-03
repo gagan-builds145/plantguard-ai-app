@@ -102,6 +102,7 @@ export const ROLE_META: Record<NewRoleId, RoleMeta> = {
     icon: Sprout,
     desktopNav: [
       { key: "home", label: "Home", to: "/grower", icon: Home },
+      { key: "feed", label: "Feed", to: "/community", icon: Users2 },
       { key: "discover", label: "Discover", to: "/grower/discover", icon: Compass },
       {
         key: "scan",
@@ -123,6 +124,7 @@ export const ROLE_META: Record<NewRoleId, RoleMeta> = {
     ],
     mobileNav: [
       { key: "home", label: "Home", to: "/grower", icon: Home },
+      { key: "feed", label: "Feed", to: "/community", icon: Users2 },
       { key: "discover", label: "Discover", to: "/grower/discover", icon: Compass },
       {
         key: "scan",
@@ -160,6 +162,7 @@ export const ROLE_META: Record<NewRoleId, RoleMeta> = {
     icon: Store,
     desktopNav: [
       { key: "home", label: "Dashboard", to: "/seller", icon: LayoutDashboard },
+      { key: "feed", label: "Community Feed", to: "/community", icon: Users2 },
       { key: "orders", label: "Orders", to: "/seller/orders", icon: Package },
       { key: "products", label: "Products", to: "/seller/products", icon: ShoppingBag },
       { key: "inventory", label: "Inventory", to: "/seller/inventory", icon: Boxes },
@@ -188,6 +191,7 @@ export const ROLE_META: Record<NewRoleId, RoleMeta> = {
     ],
     mobileNav: [
       { key: "home", label: "Home", to: "/seller", icon: Home },
+      { key: "feed", label: "Feed", to: "/community", icon: Users2 },
       { key: "orders", label: "Orders", to: "/seller/orders", icon: Package },
       { key: "products", label: "Products", to: "/seller/products", icon: ShoppingBag },
       { key: "analytics", label: "Analytics", to: "/seller/analytics", icon: BarChart3 },
@@ -220,6 +224,7 @@ export const ROLE_META: Record<NewRoleId, RoleMeta> = {
     icon: Truck,
     desktopNav: [
       { key: "home", label: "Home", to: "/vehicle", icon: Home },
+      { key: "feed", label: "Community Feed", to: "/community", icon: Users2 },
       {
         key: "requests",
         label: "Service Requests",
@@ -239,6 +244,7 @@ export const ROLE_META: Record<NewRoleId, RoleMeta> = {
     ],
     mobileNav: [
       { key: "home", label: "Home", to: "/vehicle", icon: Home },
+      { key: "feed", label: "Feed", to: "/community", icon: Users2 },
       { key: "requests", label: "Requests", to: "/vehicle/requests", icon: ClipboardList },
       { key: "active", label: "Active", to: "/vehicle/active", icon: Navigation },
       { key: "vehicles", label: "Vehicles", to: "/vehicle/vehicles", icon: Truck },
@@ -270,6 +276,7 @@ export const ROLE_META: Record<NewRoleId, RoleMeta> = {
     icon: Briefcase,
     desktopNav: [
       { key: "home", label: "Home", to: "/work", icon: Home },
+      { key: "feed", label: "Community Feed", to: "/community", icon: Users2 },
       { key: "jobs", label: "Jobs", to: "/work/jobs", icon: Briefcase },
       { key: "active", label: "Active Work", to: "/work/active", icon: Wrench },
       { key: "upcoming", label: "Upcoming Work", to: "/work/upcoming", icon: CalendarClock },
@@ -281,6 +288,7 @@ export const ROLE_META: Record<NewRoleId, RoleMeta> = {
     ],
     mobileNav: [
       { key: "home", label: "Home", to: "/work", icon: Home },
+      { key: "feed", label: "Feed", to: "/community", icon: Users2 },
       { key: "jobs", label: "Jobs", to: "/work/jobs", icon: Briefcase },
       { key: "active", label: "Active", to: "/work/active", icon: Wrench },
       { key: "skills", label: "Skills", to: "/work/skills", icon: ClipboardList },
@@ -312,6 +320,7 @@ export const ROLE_META: Record<NewRoleId, RoleMeta> = {
     icon: Microscope,
     desktopNav: [
       { key: "home", label: "Dashboard", to: "/lab", icon: LayoutDashboard },
+      { key: "feed", label: "Community Feed", to: "/community", icon: Users2 },
       { key: "analysis", label: "Plant Analysis", to: "/lab/analysis", icon: ScanLine },
       {
         key: "projects",
@@ -338,6 +347,7 @@ export const ROLE_META: Record<NewRoleId, RoleMeta> = {
     ],
     mobileNav: [
       { key: "home", label: "Home", to: "/lab", icon: Home },
+      { key: "feed", label: "Feed", to: "/community", icon: Users2 },
       { key: "analysis", label: "Analysis", to: "/lab/analysis", icon: ScanLine },
       { key: "projects", label: "Projects", to: "/lab/projects", icon: FolderKanban },
       { key: "library", label: "Library", to: "/lab/library", icon: Library },

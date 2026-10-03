@@ -27,6 +27,8 @@ import {
   WORKSPACE_ROLES,
   type WorkspaceRole,
 } from "@/lib/plantguard-data";
+import { RoleChooser, type ChooserRole } from "@/components/role-chooser";
+import type { NewRoleId } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 import { useMutation } from "convex/react";
 import {
@@ -124,7 +126,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
 
-  const [role, setRole] = useState<WorkspaceRole | "">("");
+  const [role, setRole] = useState<WorkspaceRole | NewRoleId | "">("");
   const [displayName, setDisplayName] = useState("");
   const [country, setCountry] = useState("");
   const [state, setState] = useState("");
@@ -165,10 +167,28 @@ export default function Onboarding() {
     setter(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
   }
 
-  function chooseRole(next: WorkspaceRole) {
+  function chooseRole(next: WorkspaceRole | NewRoleId) {
     setRole(next);
     // Help options differ by role — start fresh when the role changes.
     setHelpNeeded([]);
+  }
+
+  /**
+   * Farmer and Nursery finish here; the other five roles own a purpose-built
+   * wizard, so save the role and hand over instead of asking farm questions.
+   */
+  async function selectRole(next: ChooserRole) {
+    setRole(next.profileRole);
+    setHelpNeeded([]);
+    if (next.id === "farmer" || next.id === "nursery") return;
+    setSaving(true);
+    try {
+      await saveProfile({ role: next.profileRole });
+      navigate(next.setupTo, { replace: true });
+    } catch {
+      toast.error("We couldn't save that. Please try again.");
+      setSaving(false);
+    }
   }
 
   async function persist(patch: Parameters<typeof saveProfile>[0]) {
@@ -309,47 +329,16 @@ export default function Onboarding() {
               later from your profile.
             </p>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {WORKSPACE_ROLES.map((item) => {
-                const Icon = item.icon;
-                const selected = role === item.role;
-                return (
-                  <button
-                    key={item.role}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => chooseRole(item.role)}
-                    className={cn(
-                      "flex flex-col items-start gap-3 rounded-2xl border p-5 text-left transition-colors",
-                      selected
-                        ? "border-primary bg-accent"
-                        : "border-border bg-card hover:border-primary/40",
-                    )}
-                  >
-                    <span className="flex w-full items-center justify-between">
-                      <span className="flex size-11 items-center justify-center rounded-xl bg-card text-primary">
-                        <Icon className="size-6" />
-                      </span>
-                      {selected ? (
-                        <CheckCircle2 className="size-5 text-primary" />
-                      ) : (
-                        <span className="size-5 rounded-full border border-border" />
-                      )}
-                    </span>
-                    <span>
-                      <span className="block text-[17px] font-bold text-foreground">
-                        {item.label}
-                      </span>
-                      <span className="mt-0.5 block text-xs font-medium text-primary">
-                        {item.tagline}
-                      </span>
-                    </span>
-                    <span className="text-sm leading-6 text-muted-foreground">
-                      {item.description}
-                    </span>
-                  </button>
-                );
-              })}
+            <div className="mt-8">
+              <RoleChooser
+                value={role}
+                columns="sm:grid-cols-2"
+                onSelect={(item) => void selectRole(item)}
+              />
+              <p className="mt-4 text-xs text-muted-foreground">
+                Farmer and Nursery continue with the farm setup below. The other five
+                roles open their own short setup wizard.
+              </p>
             </div>
           </section>
         )}

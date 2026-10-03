@@ -10,6 +10,7 @@ import {
 } from "@/components/role-ui";
 import { Button } from "@/components/ui/button";
 import { VEHICLE_INSURANCE } from "@/lib/role-data";
+import { CoverDialog } from "@/components/role-dialogs";
 import {
   ArrowRight,
   FileCheck2,
@@ -19,6 +20,7 @@ import {
   UserRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useState } from "react";
 
 const ICONS: Record<string, LucideIcon> = {
   vehicle: Tractor,
@@ -48,6 +50,16 @@ const POLICIES = [
 ];
 
 export function VehicleInsurance() {
+  const [coverOpen, setCoverOpen] = useState(false);
+  const [activeCover, setActiveCover] = useState<
+    (typeof VEHICLE_INSURANCE)[number] | null
+  >(null);
+
+  const openCover = (cover: (typeof VEHICLE_INSURANCE)[number]) => {
+    setActiveCover(cover);
+    setCoverOpen(true);
+  };
+
   return (
     <RolePage
       role="vehicle_owner"
@@ -130,7 +142,11 @@ export function VehicleInsurance() {
                     </li>
                   ))}
                 </ul>
-                <Button variant="outline" className="mt-1 h-11 w-full gap-2 rounded-xl">
+                <Button
+                  variant="outline"
+                  className="mt-1 h-11 w-full gap-2 rounded-xl"
+                  onClick={() => openCover(item)}
+                >
                   Explore cover
                   <ArrowRight className="size-4" />
                 </Button>
@@ -177,6 +193,13 @@ export function VehicleInsurance() {
           </InfoNote>
         </div>
       </Panel>
+
+      <CoverDialog
+        open={coverOpen}
+        onOpenChange={setCoverOpen}
+        cover={activeCover}
+        accent="#1565C0"
+      />
     </RolePage>
   );
 }

@@ -12,6 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { SELLER_MARKETPLACE_LISTINGS } from "@/lib/role-data";
 import { Building2, MapPin, PackageSearch, Store, TrendingUp } from "lucide-react";
+import { Link } from "react-router";
+import { toast } from "sonner";
 
 const STEPS = [
   {
@@ -40,9 +42,11 @@ export function SellerMarketplace() {
       title="Marketplace"
       subtitle="Reach wholesale buyers beyond your own storefront with bulk listings and repeat orders."
       action={
-        <Button className="h-11 gap-2 rounded-xl">
-          <PackageSearch className="size-4" />
-          List a bulk product
+        <Button asChild className="h-11 gap-2 rounded-xl">
+          <Link to="/seller/products">
+            <PackageSearch className="size-4" />
+            List a bulk product
+          </Link>
         </Button>
       }
     >
@@ -113,6 +117,9 @@ export function SellerMarketplace() {
                   <p className="text-sm font-semibold text-foreground">{listing.title}</p>
                   <StatusPill label="Open" tone="green" />
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  {listing.title} · {listing.price} per listed unit
+                </p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-[#00695C]">{listing.price}</span>
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -125,7 +132,13 @@ export function SellerMarketplace() {
                   <Button variant="outline" size="sm" className="h-10 flex-1 rounded-xl">
                     View lot
                   </Button>
-                  <Button size="sm" className="h-10 flex-1 rounded-xl">
+                  <Button
+                    size="sm"
+                    className="h-10 flex-1 rounded-xl"
+                    onClick={() =>
+                      toast.success(`Enquiry sent to ${listing.seller}`)
+                    }
+                  >
                     Enquire
                   </Button>
                 </div>

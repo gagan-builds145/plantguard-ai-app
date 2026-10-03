@@ -27,6 +27,8 @@ import {
 import { Download, Filter, Package, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
+import { downloadCsv } from "@/lib/csv";
+import { toast } from "sonner";
 
 const STATUS_TONE: Record<SellerOrderStatus, PillTone> = {
   New: "blue",
@@ -130,7 +132,29 @@ export function SellerOrders() {
             <Filter className="size-3.5" />
             {tab} · {counts[tab] ?? 0}
           </span>
-          <Button variant="outline" className="h-11 gap-2 rounded-xl" type="button">
+          <Button
+            variant="outline"
+            className="h-11 gap-2 rounded-xl"
+            onClick={() => {
+              if (!visible.length) {
+                toast.error("Nothing to export in this view.");
+                return;
+              }
+              downloadCsv(
+                `plantguard-orders-${tab.toLowerCase().replace(/\s+/g, "-")}`,
+                ["Order", "Customer", "Product", "Quantity", "Date", "Status"],
+                visible.map((order) => [
+                  order.id,
+                  order.customer,
+                  order.product,
+                  order.quantity,
+                  order.date,
+                  order.status,
+                ]),
+              );
+              toast.success(`Exported ${visible.length} orders`);
+            }}
+          >
             <Download className="size-4" />
             Export
           </Button>

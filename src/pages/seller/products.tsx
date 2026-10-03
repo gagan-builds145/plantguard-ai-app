@@ -19,9 +19,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useLocalState } from "@/hooks/use-local-state";
-import { SELLER_CATEGORIES, SELLER_PRODUCTS } from "@/lib/role-data";
+import { SELLER_CATEGORIES, SELLER_PRODUCTS, IMG } from "@/lib/role-data";
 import { Boxes, Camera, Plus, Search, Upload } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 const TABS = ["All", "In Stock", "Low Stock", "Out of Stock", "Drafts"] as const;
 
@@ -61,6 +62,7 @@ export function SellerProducts() {
     [],
   );
   const [drafts, setDrafts] = useLocalState<string[]>("seller-product-drafts", []);
+  const [draftImage, setDraftImage] = useState("");
 
   const all = useMemo(() => [...created, ...SELLER_PRODUCTS], [created]);
 
@@ -91,7 +93,7 @@ export function SellerProducts() {
       stock,
       status: stock === 0 ? "Out of Stock" : stock <= 10 ? "Low Stock" : "In Stock",
       visibility,
-      image: SELLER_PRODUCTS[0].image,
+      image: draftImage || SELLER_PRODUCTS[0].image,
     };
     if (visibility === "Published") {
       setCreated((prev) => [product, ...prev]);
@@ -100,6 +102,7 @@ export function SellerProducts() {
       setCreated((prev) => [product, ...prev]);
     }
     setDraft(EMPTY_DRAFT);
+    setDraftImage("");
     setOpen(false);
   };
 
@@ -260,19 +263,56 @@ export function SellerProducts() {
               />
             </label>
 
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" className="h-11 gap-2 rounded-xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 gap-2 rounded-xl"
+                onClick={() => {
+                  setDraftImage(IMG.field);
+                  toast.success("Camera photo attached");
+                }}
+              >
                 <Camera className="size-4" />
                 Camera
               </Button>
-              <Button type="button" variant="outline" className="h-11 gap-2 rounded-xl">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 gap-2 rounded-xl"
+                onClick={() => {
+                  setDraftImage(IMG.nursery);
+                  toast.success("Gallery image attached");
+                }}
+              >
                 <Upload className="size-4" />
                 Gallery
               </Button>
-              <Button type="button" variant="outline" className="h-11 gap-2 rounded-xl">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 gap-2 rounded-xl"
+                onClick={() => {
+                  setDraftImage(IMG.growing);
+                  toast.success("File attached");
+                }}
+              >
                 <Upload className="size-4" />
                 File Upload
               </Button>
+              {draftImage ? (
+                <span className="flex items-center gap-2 rounded-xl bg-surface-2 px-2.5 py-1.5">
+                  <img src={draftImage} alt="" className="size-8 rounded-lg object-cover" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 rounded-lg px-2 text-[13px]"
+                    onClick={() => setDraftImage("")}
+                  >
+                    Remove
+                  </Button>
+                </span>
+              ) : null}
             </div>
           </div>
 
