@@ -37,10 +37,12 @@ import { useI18n } from "@/lib/i18n";
 import { LANGUAGES, LOCATIONS } from "@/lib/plantguard-data";
 import { useMutation } from "convex/react";
 import {
+  Bell,
   ChevronRight,
   Flower2,
   Globe,
   HelpCircle,
+  Info,
   Leaf,
   Loader2,
   LogOut,
@@ -49,7 +51,6 @@ import {
   Phone,
   ShieldCheck,
   Sprout,
-  Wheat,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
@@ -338,39 +339,34 @@ export default function Profile() {
           </div>
         </section>
 
-        {/* Security + support */}
+        {/* Settings + support */}
         <section className="flex flex-col gap-3">
           <h2 className="px-1 text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-            Security &amp; support
+            Settings &amp; support
           </h2>
           <Row
+            icon={Bell}
+            title="Notifications"
+            description="Recent checks, orders and posts"
+            to="/notifications"
+          />
+          <Row
             icon={ShieldCheck}
-            title="Account security"
-            description="Change password and sessions — coming soon"
-            disabled
-            trailing={
-              <Badge className="h-7 border-transparent bg-surface-3 px-2.5 text-xs text-muted-foreground">
-                Coming soon
-              </Badge>
-            }
+            title="Settings & account security"
+            description="Password, language and your data"
+            to="/settings"
           />
           <Row
             icon={HelpCircle}
             title="Help centre"
             description="Guides on scanning and crop care"
-            disabled
-            trailing={
-              <Badge className="h-7 border-transparent bg-surface-3 px-2.5 text-xs text-muted-foreground">
-                Coming soon
-              </Badge>
-            }
+            to="/help"
           />
           <Row
-            icon={Wheat}
+            icon={Info}
             title="About PlantGuard AI"
             description={`Deep learning based plant disease detection · ${isNursery ? "Nursery" : "Farmer"} edition`}
-            disabled
-            trailing={<span />}
+            to="/about"
           />
         </section>
 

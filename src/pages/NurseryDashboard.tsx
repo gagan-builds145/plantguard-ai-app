@@ -22,6 +22,7 @@ import {
   Image as ImageIcon,
   Leaf,
   MapPin,
+  Package,
   ScanLine,
   ShoppingCart,
   Sparkles,
@@ -211,8 +212,8 @@ export function NurseryDashboard({
           </section>
         )}
 
-        {/* Sell + insights */}
-        <section className="grid gap-3 sm:grid-cols-2">
+        {/* Sell, orders + insights */}
+        <section className="grid gap-3 md:grid-cols-3">
           <Link
             to="/sell"
             className="group flex items-start gap-4 rounded-2xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-[0_4px_12px_rgba(20,40,20,0.08)]"
@@ -241,6 +242,22 @@ export function NurseryDashboard({
               </span>
               <span className="mt-0.5 block text-sm leading-6 text-muted-foreground">
                 Analyse your post engagement and product sales.
+              </span>
+            </span>
+          </Link>
+          <Link
+            to="/orders"
+            className="group flex items-start gap-4 rounded-2xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-[0_4px_12px_rgba(20,40,20,0.08)]"
+          >
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-primary">
+              <Package className="size-5" />
+            </span>
+            <span>
+              <span className="block text-[15px] font-semibold text-foreground">
+                Orders &amp; enquiries
+              </span>
+              <span className="mt-0.5 block text-sm leading-6 text-muted-foreground">
+                Track buyer orders and move them through fulfilment.
               </span>
             </span>
           </Link>

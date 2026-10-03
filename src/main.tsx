@@ -24,6 +24,11 @@ const NurseryStock = lazy(() => import("./pages/NurseryStock.tsx"));
 const NurseryFeed = lazy(() => import("./pages/NurseryFeed.tsx"));
 const SellProducts = lazy(() => import("./pages/SellProducts.tsx"));
 const Insights = lazy(() => import("./pages/Insights.tsx"));
+const Orders = lazy(() => import("./pages/Orders.tsx"));
+const Notifications = lazy(() => import("./pages/Notifications.tsx"));
+const Settings = lazy(() => import("./pages/Settings.tsx"));
+const Help = lazy(() => import("./pages/Help.tsx"));
+const About = lazy(() => import("./pages/About.tsx"));
 const Profile = lazy(() => import("./pages/Profile.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
@@ -226,6 +231,46 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth redirectImmediately>
                     <Insights />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <RequireAuth redirectImmediately>
+                    <Orders />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  <RequireAuth redirectImmediately>
+                    <Notifications />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <RequireAuth redirectImmediately>
+                    <Settings />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/help"
+                element={
+                  <RequireAuth redirectImmediately>
+                    <Help />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/about"
+                element={
+                  <RequireAuth redirectImmediately>
+                    <About />
                   </RequireAuth>
                 }
               />

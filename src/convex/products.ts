@@ -161,8 +161,29 @@ export const recordSale = mutation({
       unitPrice: product.price,
       total,
       buyer: args.buyer?.trim() || undefined,
+      status: "new",
       createdAt: Date.now(),
     });
+  },
+});
+
+/** Move an order through its fulfilment states. */
+export const updateSaleStatus = mutation({
+  args: {
+    saleId: v.id("sales"),
+    status: v.union(
+      v.literal("new"),
+      v.literal("confirmed"),
+      v.literal("delivered"),
+      v.literal("cancelled"),
+    ),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) throw new Error("Not authenticated");
+    const sale = await ctx.db.get(args.saleId);
+    if (!sale || sale.userId !== userId) throw new Error("Order not found");
+    await ctx.db.patch(args.saleId, { status: args.status });
   },
 });
 

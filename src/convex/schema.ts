@@ -117,6 +117,14 @@ const schema = defineSchema(
       unitPrice: v.number(),
       total: v.number(),
       buyer: v.optional(v.string()),
+      status: v.optional(
+        v.union(
+          v.literal("new"),
+          v.literal("confirmed"),
+          v.literal("delivered"),
+          v.literal("cancelled"),
+        ),
+      ),
       createdAt: v.number(),
     }).index("by_user", ["userId"]),
   },

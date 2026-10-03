@@ -13,14 +13,18 @@ import { useFarmerProfile } from "@/hooks/use-farmer";
 import { useI18n } from "@/lib/i18n";
 import { useMutation } from "convex/react";
 import {
+  ArrowLeft,
   ArrowRight,
   Camera,
   CheckCircle2,
+  KeyRound,
   Loader2,
+  Lock,
   Mail,
   Phone,
   ShieldCheck,
   Sparkles,
+  UserRound,
 } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
@@ -42,6 +46,7 @@ function resolveRedirectAfterAuth(
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9]{7,15}$/;
+const MIN_PASSWORD = 8;
 
 function normalizePhone(value: string) {
   return value.replace(/[\s\-()]/g, "");
@@ -54,6 +59,8 @@ const HIGHLIGHTS = [
 ];
 
 type AuthMode = "signin" | "signup";
+/** `forgot` asks for the email; `reset` verifies the code and sets a new password. */
+type View = AuthMode | "forgot" | "reset";
 
 function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const { isLoading: authLoading, isAuthenticated, signIn } = useAuth();
@@ -72,19 +79,27 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       returnTo ? `&returnTo=${encodeURIComponent(returnTo)}` : ""
     }`;
 
-  const isSignUp = mode === "signup";
-
-  const [step, setStep] = useState<"identify" | "verify">("identify");
+  const [view, setView] = useState<View>(mode);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(30);
 
-  // Send signed-in users to the right place: brand-new (or not-yet-onboarded)
-  // accounts go straight into profile setup; everyone else continues to their
-  // intended destination.
+  // Keep the visible view in sync with the ?mode= link unless mid reset.
+  useEffect(() => {
+    setView((current) =>
+      current === "forgot" || current === "reset" ? current : mode,
+    );
+  }, [mode]);
+
+  // Send signed-in users to the right place: not-yet-onboarded accounts go into
+  // profile setup; everyone else continues to their intended destination.
   useEffect(() => {
     if (authLoading || !isAuthenticated) return;
     if (profileLoading) return;
@@ -101,95 +116,158 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   ]);
 
   useEffect(() => {
-    if (step !== "verify" || secondsLeft <= 0) return;
+    if (view !== "reset" || secondsLeft <= 0) return;
     const timer = window.setInterval(
       () => setSecondsLeft((value) => Math.max(value - 1, 0)),
       1000,
     );
     return () => window.clearInterval(timer);
-  }, [step, secondsLeft]);
+  }, [view, secondsLeft]);
 
-  async function sendCode(address: string) {
-    const formData = new FormData();
-    formData.set("email", address);
-    await signIn("email-otp", formData);
+  function goTo(next: View) {
+    setError(null);
+    setPassword("");
+    setConfirm("");
+    setNewPassword("");
+    setCode("");
+    setView(next);
   }
 
-  async function handleIdentify(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSignIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-
-    const value = email.trim();
-    if (!value) {
-      setError("Please enter your email address.");
-      return;
-    }
-    if (!EMAIL_RE.test(value)) {
+    if (!EMAIL_RE.test(email.trim())) {
       setError("Please enter a valid email address.");
       return;
     }
-
-    if (isSignUp) {
-      const normalizedPhone = normalizePhone(phone);
-      if (!PHONE_RE.test(normalizedPhone)) {
-        setError("Please enter a valid mobile number.");
-        return;
-      }
+    if (!password) {
+      setError("Please enter your password.");
+      return;
     }
-
     setIsLoading(true);
     try {
-      await sendCode(value);
-      setOtp("");
-      setSecondsLeft(30);
-      setStep("verify");
+      await signIn("password", {
+        email: email.trim(),
+        password,
+        flow: "signIn",
+      });
+      // Routing handled by the effect above.
+    } catch {
+      setError("Incorrect email or password.");
+      setIsLoading(false);
+    }
+  }
+
+  async function handleSignUp(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    if (name.trim().length < 2) {
+      setError("Please enter your name.");
+      return;
+    }
+    if (!EMAIL_RE.test(email.trim())) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (!PHONE_RE.test(normalizePhone(phone))) {
+      setError("Please enter a valid mobile number.");
+      return;
+    }
+    if (password.length < MIN_PASSWORD) {
+      setError(`Password must be at least ${MIN_PASSWORD} characters.`);
+      return;
+    }
+    if (password !== confirm) {
+      setError("Passwords don't match.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await signIn("password", {
+        email: email.trim(),
+        password,
+        name: name.trim(),
+        flow: "signUp",
+      });
+      try {
+        await saveProfile({ phone: normalizePhone(phone) });
+      } catch {
+        toast.error(
+          "Account created, but we couldn't save your mobile number. You can add it later from your profile.",
+        );
+      }
+      // Routing handled by the effect above.
     } catch {
       setError(
-        "We couldn't send a verification code right now. Please try again.",
+        "We couldn't create your account. That email may already be registered.",
       );
+      setIsLoading(false);
+    }
+  }
+
+  async function sendResetCode(address: string) {
+    await signIn("password", { email: address, flow: "reset" });
+  }
+
+  async function handleForgot(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    if (!EMAIL_RE.test(email.trim())) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await sendResetCode(email.trim());
+      setCode("");
+      setSecondsLeft(30);
+      setView("reset");
+    } catch {
+      setError("We couldn't send a reset code right now. Please try again.");
     } finally {
       setIsLoading(false);
     }
   }
 
-  async function handleVerify(event: React.FormEvent<HTMLFormElement>) {
+  async function handleReset(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (otp.length !== 6 || isLoading) return;
     setError(null);
+    if (code.length !== 6) {
+      setError("Enter the 6-digit code we emailed you.");
+      return;
+    }
+    if (newPassword.length < MIN_PASSWORD) {
+      setError(`Password must be at least ${MIN_PASSWORD} characters.`);
+      return;
+    }
+    if (newPassword !== confirm) {
+      setError("Passwords don't match.");
+      return;
+    }
     setIsLoading(true);
     try {
-      const formData = new FormData();
-      formData.set("email", email);
-      formData.set("code", otp);
-      await signIn("email-otp", formData);
-
-      if (isSignUp && phone.trim()) {
-        // Store the mobile number on the profile for account recovery.
-        try {
-          await saveProfile({ phone: normalizePhone(phone) });
-        } catch {
-          toast.error(
-            "Signed in, but we couldn't save your mobile number. You can add it later from your profile.",
-          );
-        }
-      }
-
-      // Routing to dashboard vs. profile setup is handled by the effect above
-      // once the profile has loaded.
+      await signIn("password", {
+        email: email.trim(),
+        code,
+        newPassword,
+        flow: "reset-verification",
+      });
+      toast.success("Password updated");
+      // Routing handled by the effect above.
     } catch {
-      setError("Incorrect verification code. Please try again.");
-      setOtp("");
+      setError("That code is incorrect or has expired. Please try again.");
+      setCode("");
       setIsLoading(false);
     }
   }
 
-  async function handleResend() {
+  async function handleResendReset() {
     if (secondsLeft > 0 || isLoading) return;
     setError(null);
     setIsLoading(true);
     try {
-      await sendCode(email);
-      setOtp("");
+      await sendResetCode(email.trim());
+      setCode("");
       setSecondsLeft(30);
     } catch {
       setError("Couldn't resend the code. Please try again.");
@@ -203,7 +281,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     setError(null);
     try {
       await signIn("anonymous");
-      // Routing is handled by the effect above once the profile has loaded.
+      // Routing handled by the effect above.
     } catch {
       setError("Guest access isn't available right now.");
       setIsLoading(false);
@@ -222,11 +300,13 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   }
 
   const maskedEmail = (() => {
-    const [name, domain] = email.split("@");
+    const [local, domain] = email.split("@");
     if (!domain) return email;
-    const visible = name.slice(0, 1);
-    return `${visible}${"•".repeat(Math.max(name.length - 1, 2))}@${domain}`;
+    const visible = local.slice(0, 1);
+    return `${visible}${"•".repeat(Math.max(local.length - 1, 2))}@${domain}`;
   })();
+
+  const isResetFlow = view === "forgot" || view === "reset";
 
   return (
     <div className="min-h-screen bg-surface-2 lg:grid lg:grid-cols-2">
@@ -270,25 +350,22 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
       {/* Form panel */}
       <div className="flex min-h-screen flex-col items-center justify-center px-4 py-10 sm:px-6">
         <div className="w-full max-w-[420px]">
-          <Link
-            to="/"
-            className="mb-8 inline-flex items-center gap-2 lg:hidden"
-          >
+          <Link to="/" className="mb-8 inline-flex items-center gap-2 lg:hidden">
             <PlantGuardLogo />
           </Link>
 
-          {step === "identify" ? (
+          {/* ---------------------------------------------------------- */}
+          {view === "signin" && (
             <>
               <h1 className="text-[26px] font-bold tracking-[-0.02em] text-foreground">
-                {isSignUp ? t("auth.createAccount") : t("auth.welcomeBack")}
+                {t("auth.welcomeBack")}
               </h1>
               <p className="mt-2 text-[15px] leading-6 text-muted-foreground">
-                {isSignUp
-                  ? "Enter your email to set up your PlantGuard AI account. It takes less than a minute — no password to remember."
-                  : "Sign in to continue with PlantGuard AI. We'll email you a one-time code."}
+                Sign in with your email and password to continue with PlantGuard
+                AI.
               </p>
 
-              <form onSubmit={handleIdentify} className="mt-8 flex flex-col gap-5">
+              <form onSubmit={handleSignIn} className="mt-8 flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="email" className="text-sm font-medium">
                     {t("auth.email")}
@@ -297,48 +374,44 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                     <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
                       id="email"
-                      name="email"
                       type="email"
                       autoComplete="email"
                       placeholder="you@example.com"
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       disabled={isLoading}
-                      aria-invalid={Boolean(error)}
                       className="h-12 rounded-xl pl-10 text-[15px]"
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    We&apos;ll email you a 6-digit verification code. No password
-                    needed.
-                  </p>
                 </div>
 
-                {isSignUp ? (
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="phone" className="text-sm font-medium">
-                      {t("auth.mobile")}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password" className="text-sm font-medium">
+                      Password
                     </Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        inputMode="tel"
-                        autoComplete="tel"
-                        placeholder="+91 98765 43210"
-                        value={phone}
-                        onChange={(event) => setPhone(event.target.value)}
-                        disabled={isLoading}
-                        className="h-12 rounded-xl pl-10 text-[15px]"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Used for account recovery. We&apos;ll never share it.
-                    </p>
+                    <button
+                      type="button"
+                      onClick={() => goTo("forgot")}
+                      className="text-xs font-semibold text-primary hover:underline"
+                    >
+                      Forgot password?
+                    </button>
                   </div>
-                ) : null}
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      autoComplete="current-password"
+                      placeholder="Your password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      disabled={isLoading}
+                      className="h-12 rounded-xl pl-10 text-[15px]"
+                    />
+                  </div>
+                </div>
 
                 {error ? (
                   <p className="text-sm font-medium text-danger" role="alert">
@@ -354,11 +427,11 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                   {isLoading ? (
                     <>
                       <Loader2 className="size-5 animate-spin" />
-                      Sending code…
+                      Signing in…
                     </>
                   ) : (
                     <>
-                      {isSignUp ? t("auth.createAccount") : t("common.continue")}
+                      {t("auth.signIn")}
                       <ArrowRight className="size-4" />
                     </>
                   )}
@@ -382,49 +455,243 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               >
                 {t("auth.continueGuest")}
               </Button>
-              <p className="mt-3 text-center text-xs text-muted-foreground">
-                Explore with a temporary account. You can add your details later.
-              </p>
 
               <p className="mt-6 text-center text-sm text-muted-foreground">
-                {isSignUp ? (
-                  <>
-                    Already have an account?{" "}
-                    <Link
-                      to={authHref("signin")}
-                      className="font-semibold text-primary hover:underline"
-                    >
-                      Sign in
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    New to PlantGuard AI?{" "}
-                    <Link
-                      to={authHref("signup")}
-                      className="font-semibold text-primary hover:underline"
-                    >
-                      Create an account
-                    </Link>
-                  </>
-                )}
+                New to PlantGuard AI?{" "}
+                <Link
+                  to={authHref("signup")}
+                  onClick={() => goTo("signup")}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  Create an account
+                </Link>
               </p>
             </>
-          ) : (
+          )}
+
+          {/* ---------------------------------------------------------- */}
+          {view === "signup" && (
             <>
               <h1 className="text-[26px] font-bold tracking-[-0.02em] text-foreground">
-                {isSignUp ? "Verify your email" : "Confirm your sign-in"}
+                {t("auth.createAccount")}
               </h1>
               <p className="mt-2 text-[15px] leading-6 text-muted-foreground">
-                Enter the 6-digit verification code we sent to{" "}
-                <span className="font-medium text-foreground">{maskedEmail}</span>
+                Create your PlantGuard AI account with an email and password.
               </p>
 
-              <form onSubmit={handleVerify} className="mt-8 flex flex-col gap-5">
-                <div className="flex justify-center">
+              <form onSubmit={handleSignUp} className="mt-8 flex flex-col gap-5">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="name" className="text-sm font-medium">
+                    Full name
+                  </Label>
+                  <div className="relative">
+                    <UserRound className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="name"
+                      autoComplete="name"
+                      placeholder="Your name"
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      disabled={isLoading}
+                      className="h-12 rounded-xl pl-10 text-[15px]"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    {t("auth.email")}
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      disabled={isLoading}
+                      className="h-12 rounded-xl pl-10 text-[15px]"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="phone" className="text-sm font-medium">
+                    {t("auth.mobile")}
+                  </Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      placeholder="+91 98765 43210"
+                      value={phone}
+                      onChange={(event) => setPhone(event.target.value)}
+                      disabled={isLoading}
+                      className="h-12 rounded-xl pl-10 text-[15px]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="password" className="text-sm font-medium">
+                      Password
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder={`${MIN_PASSWORD}+ characters`}
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      disabled={isLoading}
+                      className="h-12 rounded-xl text-[15px]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="confirm" className="text-sm font-medium">
+                      Confirm
+                    </Label>
+                    <Input
+                      id="confirm"
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder="Repeat password"
+                      value={confirm}
+                      onChange={(event) => setConfirm(event.target.value)}
+                      disabled={isLoading}
+                      className="h-12 rounded-xl text-[15px]"
+                    />
+                  </div>
+                </div>
+
+                {error ? (
+                  <p className="text-sm font-medium text-danger" role="alert">
+                    {error}
+                  </p>
+                ) : null}
+
+                <Button
+                  type="submit"
+                  className="h-12 rounded-xl text-[15px] font-semibold"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="size-5 animate-spin" />
+                      Creating account…
+                    </>
+                  ) : (
+                    <>
+                      {t("auth.createAccount")}
+                      <ArrowRight className="size-4" />
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <p className="mt-6 text-center text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <Link
+                  to={authHref("signin")}
+                  onClick={() => goTo("signin")}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </>
+          )}
+
+          {/* ---------------------------------------------------------- */}
+          {view === "forgot" && (
+            <>
+              <h1 className="text-[26px] font-bold tracking-[-0.02em] text-foreground">
+                Reset your password
+              </h1>
+              <p className="mt-2 text-[15px] leading-6 text-muted-foreground">
+                Enter your email and we&apos;ll send a 6-digit code to reset your
+                password.
+              </p>
+
+              <form onSubmit={handleForgot} className="mt-8 flex flex-col gap-5">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="reset-email" className="text-sm font-medium">
+                    {t("auth.email")}
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      disabled={isLoading}
+                      className="h-12 rounded-xl pl-10 text-[15px]"
+                    />
+                  </div>
+                </div>
+
+                {error ? (
+                  <p className="text-sm font-medium text-danger" role="alert">
+                    {error}
+                  </p>
+                ) : null}
+
+                <Button
+                  type="submit"
+                  className="h-12 rounded-xl text-[15px] font-semibold"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="size-5 animate-spin" />
+                      Sending code…
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound className="size-4" />
+                      Send reset code
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <button
+                type="button"
+                onClick={() => goTo("signin")}
+                className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="size-4" />
+                Back to sign in
+              </button>
+            </>
+          )}
+
+          {/* ---------------------------------------------------------- */}
+          {view === "reset" && (
+            <>
+              <h1 className="text-[26px] font-bold tracking-[-0.02em] text-foreground">
+                Choose a new password
+              </h1>
+              <p className="mt-2 text-[15px] leading-6 text-muted-foreground">
+                Enter the code we sent to{" "}
+                <span className="font-medium text-foreground">{maskedEmail}</span>{" "}
+                and pick a new password.
+              </p>
+
+              <form onSubmit={handleReset} className="mt-8 flex flex-col gap-5">
+                <div className="flex flex-col items-center gap-2">
                   <InputOTP
-                    value={otp}
-                    onChange={setOtp}
+                    value={code}
+                    onChange={setCode}
                     maxLength={6}
                     disabled={isLoading}
                     containerClassName="gap-2"
@@ -441,11 +708,40 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                   </InputOTP>
                 </div>
 
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="new-password" className="text-sm font-medium">
+                    New password
+                  </Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder={`${MIN_PASSWORD}+ characters`}
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    disabled={isLoading}
+                    className="h-12 rounded-xl text-[15px]"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="reset-confirm" className="text-sm font-medium">
+                    Confirm new password
+                  </Label>
+                  <Input
+                    id="reset-confirm"
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Repeat new password"
+                    value={confirm}
+                    onChange={(event) => setConfirm(event.target.value)}
+                    disabled={isLoading}
+                    className="h-12 rounded-xl text-[15px]"
+                  />
+                </div>
+
                 {error ? (
-                  <p
-                    className="text-center text-sm font-medium text-danger"
-                    role="alert"
-                  >
+                  <p className="text-sm font-medium text-danger" role="alert">
                     {error}
                   </p>
                 ) : null}
@@ -453,17 +749,17 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                 <Button
                   type="submit"
                   className="h-12 rounded-xl text-[15px] font-semibold"
-                  disabled={isLoading || otp.length !== 6}
+                  disabled={isLoading || code.length !== 6}
                 >
                   {isLoading ? (
                     <>
                       <Loader2 className="size-5 animate-spin" />
-                      Verifying…
+                      Updating…
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="size-5" />
-                      Verify code
+                      Reset password
                     </>
                   )}
                 </Button>
@@ -477,7 +773,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                 ) : (
                   <button
                     type="button"
-                    onClick={handleResend}
+                    onClick={handleResendReset}
                     disabled={isLoading}
                     className="font-medium text-primary hover:underline disabled:opacity-50"
                   >
@@ -486,18 +782,21 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                 )}
                 <button
                   type="button"
-                  onClick={() => {
-                    setStep("identify");
-                    setOtp("");
-                    setError(null);
-                  }}
+                  onClick={() => goTo("signin")}
                   className="font-medium text-muted-foreground hover:text-foreground"
                 >
-                  Use a different email address
+                  Back to sign in
                 </button>
               </div>
             </>
           )}
+
+          {!isResetFlow ? (
+            <p className="mt-4 text-center text-xs text-muted-foreground">
+              Passwords keep your account secure. Codes are only used to reset a
+              forgotten password.
+            </p>
+          ) : null}
         </div>
       </div>
     </div>

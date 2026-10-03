@@ -5,11 +5,16 @@ import { useI18n, type MessageKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import {
   BarChart3,
+  Bell,
   Flower2,
   History,
   Home,
   Image as ImageIcon,
+  Info,
+  LifeBuoy,
+  Package,
   ScanLine,
+  Settings as SettingsIcon,
   ShoppingCart,
   Sprout,
   UserRound,
@@ -30,6 +35,14 @@ type NavItem = {
 };
 
 /** Farmer mobile bottom navigation: Home · Services · Check Plant · History · Profile */
+/** Shared secondary navigation shown to every signed-in user. */
+const SECONDARY_NAV: NavItem[] = [
+  { key: "notifications", label: "Notifications", to: "/notifications", icon: Bell },
+  { key: "settings", label: "Settings", to: "/settings", icon: SettingsIcon },
+  { key: "help", label: "Help centre", to: "/help", icon: LifeBuoy },
+  { key: "about", label: "About", to: "/about", icon: Info },
+];
+
 const FARMER_MOBILE_NAV: NavItem[] = [
   { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
   { key: "services", labelKey: "nav.services", to: "/services", icon: Sprout },
@@ -61,6 +74,7 @@ const NURSERY_DESKTOP_NAV: NavItem[] = [
   { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
   { key: "feed", label: "Feed", to: "/feed", icon: ImageIcon },
   { key: "sell", label: "Sell Products", to: "/sell", icon: ShoppingCart },
+  { key: "orders", label: "Orders", to: "/orders", icon: Package },
   { key: "insights", label: "Insights", to: "/insights", icon: BarChart3 },
   { key: "scan", label: "Check Stock", to: "/scan", icon: ScanLine },
   { key: "services", label: "Nursery Services", to: "/services", icon: Sprout },
@@ -141,6 +155,35 @@ export function AppShell({
                 aria-current={isCurrent ? "page" : undefined}
                 className={cn(
                   "flex h-11 items-center gap-3 rounded-[10px] px-3 text-sm font-medium transition-colors duration-150",
+                  isCurrent
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                )}
+              >
+                <Icon
+                  className={cn("size-5", isCurrent && "text-primary")}
+                  strokeWidth={isCurrent ? 2.4 : 2}
+                />
+                {navLabel(item)}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <nav
+          aria-label="More"
+          className="flex flex-col gap-1 border-t border-border px-3 py-3"
+        >
+          {SECONDARY_NAV.map((item) => {
+            const isCurrent = isActive(pathname, item.to);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.key}
+                to={item.to}
+                aria-current={isCurrent ? "page" : undefined}
+                className={cn(
+                  "flex h-10 items-center gap-3 rounded-[10px] px-3 text-sm font-medium transition-colors duration-150",
                   isCurrent
                     ? "bg-accent text-accent-foreground"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground",
