@@ -16,12 +16,14 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "convex/react";
 import { formatDistanceToNow } from "date-fns";
 import {
+  BarChart3,
   Camera,
   Flower2,
   Image as ImageIcon,
   Leaf,
   MapPin,
   ScanLine,
+  ShoppingCart,
   Sparkles,
   Upload,
 } from "lucide-react";
@@ -208,6 +210,41 @@ export function NurseryDashboard({
             </div>
           </section>
         )}
+
+        {/* Sell + insights */}
+        <section className="grid gap-3 sm:grid-cols-2">
+          <Link
+            to="/sell"
+            className="group flex items-start gap-4 rounded-2xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-[0_4px_12px_rgba(20,40,20,0.08)]"
+          >
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-primary">
+              <ShoppingCart className="size-5" />
+            </span>
+            <span>
+              <span className="block text-[15px] font-semibold text-foreground">
+                Sell your products
+              </span>
+              <span className="mt-0.5 block text-sm leading-6 text-muted-foreground">
+                List plants and seedlings, track stock and record sales.
+              </span>
+            </span>
+          </Link>
+          <Link
+            to="/insights"            className="group flex items-start gap-4 rounded-2xl border border-border bg-card p-5 transition-shadow duration-200 hover:shadow-[0_4px_12px_rgba(20,40,20,0.08)]"
+          >
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-accent text-primary">
+              <BarChart3 className="size-5" />
+            </span>
+            <span>
+              <span className="block text-[15px] font-semibold text-foreground">
+                Insights
+              </span>
+              <span className="mt-0.5 block text-sm leading-6 text-muted-foreground">
+                Analyse your post engagement and product sales.
+              </span>
+            </span>
+          </Link>
+        </section>
 
         {/* Nursery services */}
         <section aria-labelledby="services-heading">

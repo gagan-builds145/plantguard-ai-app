@@ -93,6 +93,32 @@ const schema = defineSchema(
     })
       .index("by_created", ["createdAt"])
       .index("by_user", ["userId"]),
+
+    // PlantGuard AI — nursery product listings for sale
+    products: defineTable({
+      userId: v.id("users"),
+      name: v.string(),
+      category: v.string(),
+      price: v.number(),
+      unit: v.string(),
+      stock: v.number(),
+      description: v.string(),
+      imageId: v.optional(v.id("_storage")),
+      active: v.boolean(),
+      createdAt: v.number(),
+    }).index("by_user", ["userId"]),
+
+    // PlantGuard AI — recorded product sales (feeds the sales analytics)
+    sales: defineTable({
+      userId: v.id("users"),
+      productId: v.id("products"),
+      productName: v.string(),
+      quantity: v.number(),
+      unitPrice: v.number(),
+      total: v.number(),
+      buyer: v.optional(v.string()),
+      createdAt: v.number(),
+    }).index("by_user", ["userId"]),
   },
   {
     schemaValidation: false,

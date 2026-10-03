@@ -22,6 +22,8 @@ const FarmServices = lazy(() => import("./pages/FarmServices.tsx"));
 const MyCrops = lazy(() => import("./pages/MyCrops.tsx"));
 const NurseryStock = lazy(() => import("./pages/NurseryStock.tsx"));
 const NurseryFeed = lazy(() => import("./pages/NurseryFeed.tsx"));
+const SellProducts = lazy(() => import("./pages/SellProducts.tsx"));
+const Insights = lazy(() => import("./pages/Insights.tsx"));
 const Profile = lazy(() => import("./pages/Profile.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
@@ -208,6 +210,22 @@ createRoot(document.getElementById("root")!).render(
                 element={
                   <RequireAuth redirectImmediately>
                     <NurseryFeed />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/sell"
+                element={
+                  <RequireAuth redirectImmediately>
+                    <SellProducts />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/insights"
+                element={
+                  <RequireAuth redirectImmediately>
+                    <Insights />
                   </RequireAuth>
                 }
               />

@@ -4,11 +4,13 @@ import { useFarmerProfile } from "@/hooks/use-farmer";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import {
+  BarChart3,
   Flower2,
   History,
   Home,
   Image as ImageIcon,
   ScanLine,
+  ShoppingCart,
   Sprout,
   UserRound,
   Wheat,
@@ -41,8 +43,8 @@ const NURSERY_MOBILE_NAV: NavItem[] = [
   { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
   { key: "feed", label: "Feed", to: "/feed", icon: ImageIcon },
   { key: "scan", label: "Check", to: "/scan", icon: ScanLine, emphasized: true },
-  { key: "stock", label: "Stock", to: "/stock", icon: Flower2 },
-  { key: "profile", labelKey: "nav.profile", to: "/profile", icon: UserRound },
+  { key: "sell", label: "Sell", to: "/sell", icon: ShoppingCart },
+  { key: "insights", label: "Insights", to: "/insights", icon: BarChart3 },
 ];
 
 /** Desktop sidebar navigation */
@@ -58,6 +60,8 @@ const FARMER_DESKTOP_NAV: NavItem[] = [
 const NURSERY_DESKTOP_NAV: NavItem[] = [
   { key: "home", labelKey: "nav.home", to: "/dashboard", icon: Home },
   { key: "feed", label: "Feed", to: "/feed", icon: ImageIcon },
+  { key: "sell", label: "Sell Products", to: "/sell", icon: ShoppingCart },
+  { key: "insights", label: "Insights", to: "/insights", icon: BarChart3 },
   { key: "scan", label: "Check Stock", to: "/scan", icon: ScanLine },
   { key: "services", label: "Nursery Services", to: "/services", icon: Sprout },
   { key: "stock", label: "My Stock", to: "/stock", icon: Flower2 },

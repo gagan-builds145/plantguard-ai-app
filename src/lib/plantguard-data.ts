@@ -505,6 +505,14 @@ export const NURSERY_OFFERS: Offer[] = [
   },
 ];
 
+export const PRODUCT_UNITS = [
+  "per plant",
+  "per tray",
+  "per bundle",
+  "per kg",
+  "per lot",
+];
+
 export const NURSERY_ICON = Flower2;
 export const FARMER_ICON = Wheat;
 
