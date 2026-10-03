@@ -46,7 +46,7 @@ export function GrowerHistory() {
   return (
     <RolePage
       role="home_grower"
-      active="history"
+      active="scan"
       title="Scan History"
       subtitle="Every plant check you saved, newest first."
       action={

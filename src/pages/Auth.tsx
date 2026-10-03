@@ -103,8 +103,13 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   useEffect(() => {
     if (authLoading || !isAuthenticated) return;
     if (profileLoading) return;
+    // Role workspaces set up their own profile, so a visit to /start or
+    // /setup/:role must not be bounced into the farmer onboarding flow.
+    const wantsRoleSetup =
+      redirect === "/start" || redirect.startsWith("/setup/");
     const needsOnboarding =
-      !profile || (!profile.onboardedAt && !profile.displayName);
+      !wantsRoleSetup &&
+      (!profile || (!profile.onboardedAt && !profile.displayName));
     navigate(needsOnboarding ? "/onboarding" : redirect, { replace: true });
   }, [
     authLoading,

@@ -65,7 +65,7 @@ const STATUS_TONE = {
 
 const STAT_ICONS = [Package, ShoppingBag, Boxes, Users];
 
-export function SellerDashboard() {
+export default function SellerDashboard() {
   const { profile } = useFarmerProfile();
   const { user } = useAuth();
   const [range, setRange] = useState<Range>("7 Days");

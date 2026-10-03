@@ -1166,6 +1166,13 @@ export const LABOUR_INSURANCE = [
  * SCIENTIST
  * ------------------------------------------------------------------ */
 
+/**
+ * Shown on every AI output a researcher sees. Prototype model output only —
+ * never a confirmed diagnosis or a substitute for laboratory verification.
+ */
+export const SCIENTIST_AI_DISCLAIMER =
+  "AI analysis is advisory only. Results come from a prototype model and must be verified against laboratory testing or an extension officer's diagnosis before use in research or practice. Do not use these outputs for treatment decisions.";
+
 export const SCIENTIST_SPECIALIZATIONS = [
   "Plant Pathology",
   "Crop Science",
